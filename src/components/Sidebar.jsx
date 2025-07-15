@@ -16,7 +16,8 @@ const menuItems = [
   { label: '예약', icon: <CalendarCheck size={20} />, path: '/reservation' },
   { label: '즐겨찾기', icon: <Heart size={20} />, path: '/favorites' },
   { label: '작품 갤러리', icon: <GalleryHorizontal size={20} />, path: '/gallery' },
-  { label: '스튜디오/클래스 등록', icon: <PlusSquare size={20} />, path: '/studio-class/register' },
+  { label: '스튜디오 등록', icon: <PlusSquare size={20} />, path: '/studio-class/register' },
+  { label: '클래스 등록', icon: <PlusSquare size={20} />, path: '/studio-class/register' }
 ];
 
 const Sidebar = () => {
