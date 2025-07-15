@@ -10,7 +10,6 @@ const Header = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // mount 시 토큰 확인
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (token) setIsLoggedIn(true);
@@ -41,7 +40,6 @@ const Header = () => {
           />
         </div>
 
-        {/* 로그인 상태에 따라 표시 */}
         <div className="flex items-center gap-2 text-gray-600 cursor-pointer">
           <User2 size={20} />
           {isLoggedIn ? (
@@ -62,8 +60,13 @@ const Header = () => {
         </div>
       </header>
 
-      {/* 로그인 모달 분리된 컴포넌트로 대체 */}
-      {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} />}
+      {/* 모달에 로그인 성공 콜백 전달 */}
+      {isLoginOpen && (
+        <LoginModal
+          onClose={() => setIsLoginOpen(false)}
+          onLoginSuccess={() => setIsLoggedIn(true)}
+        />
+      )}
     </>
   );
 };

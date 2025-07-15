@@ -3,7 +3,7 @@ import { login } from '../lib/authAPI';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
 
-const LoginModal = ({ onClose }) => {
+const LoginModal = ({ onClose, onLoginSuccess }) => { // onLoginSuccess 추가
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,8 +16,10 @@ const LoginModal = ({ onClose }) => {
       const response = await login(email, password);
       const { accessToken } = response.data;
       localStorage.setItem('accessToken', accessToken);
+
+      if (onLoginSuccess) onLoginSuccess(); // Header에 로그인 상태 전달
       onClose();
-      navigate('/');
+      navigate('/'); // 선택사항
     } catch (err) {
       setError('이메일 또는 비밀번호가 올바르지 않습니다.');
     }
@@ -26,7 +28,6 @@ const LoginModal = ({ onClose }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
       <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-lg relative">
-        {/* 닫기 버튼 */}
         <button
           onClick={onClose}
           className="absolute top-3 right-4 text-xl text-gray-400 hover:text-black"
@@ -34,13 +35,11 @@ const LoginModal = ({ onClose }) => {
           ✕
         </button>
 
-        {/* 로고 + 텍스트 */}
         <div className="text-center mb-6">
           <img src={logo} alt="Studio Pick" className="mx-auto w-24 h-24 mb-2" />
           <p className="text-sm font-semibold mt-1">환영합니다</p>
         </div>
 
-        {/* 로그인 폼 */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-sm text-gray-700 mb-1">이메일</label>
@@ -75,10 +74,7 @@ const LoginModal = ({ onClose }) => {
               />
               로그인 상태 유지
             </label>
-            <a
-              href="/forgot-password"
-              className="text-lime-400 hover:underline"
-            >
+            <a href="/forgot-password" className="text-lime-400 hover:underline">
               비밀번호를 잊으셨나요?
             </a>
           </div>
@@ -93,7 +89,6 @@ const LoginModal = ({ onClose }) => {
           </button>
         </form>
 
-        {/* 회원가입 버튼 */}
         <button
           onClick={() => {
             onClose();
@@ -104,14 +99,12 @@ const LoginModal = ({ onClose }) => {
           회원가입
         </button>
 
-        {/* 구분선 */}
         <div className="flex items-center my-4">
           <hr className="flex-grow border-gray-300" />
           <span className="mx-2 text-sm text-gray-400">또는</span>
           <hr className="flex-grow border-gray-300" />
         </div>
 
-        {/* 카카오 로그인 */}
         <button className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-semibold py-2 rounded-md">
           카카오로 계속하기
         </button>
