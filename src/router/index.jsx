@@ -1,19 +1,19 @@
 import { Routes, Route } from 'react-router-dom';
+import MainLayout from '../layouts/MainLayout';
 import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
-import StudioListPage from '../features/studio/StudioListPage';
-import StudioDetailPage from '../features/studio/StudioDetailPage';
-// import DashboardPage from '../features/dashboard/DashboardPage';
-// 등 필요한 페이지 import
+import HomePage from '../features/mainhome/HomePage';
+
 
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/studio" element={<StudioListPage />} />
-      <Route path="/studio/:id" element={<StudioDetailPage />} />
-      {/* 추가 경로 */}
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<HomePage />} /> 
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        {/* 다른 페이지 추가 가능 */}
+      </Route>
     </Routes>
   );
 };

@@ -1,47 +1,45 @@
-import { AiFillHome, AiFillCalendar, AiFillHeart, AiFillStar } from 'react-icons/ai';
-import { FaCamera, FaMusic, FaUser } from 'react-icons/fa';
-import { FiSettings } from 'react-icons/fi';
-import { BiHelpCircle } from 'react-icons/bi';
-import sidelogo from '../assets/sidelogo.png';
+import { NavLink } from 'react-router-dom';
+import {
+  Home,
+  Camera,
+  BookOpen,
+  CalendarCheck,
+  Heart,
+  GalleryHorizontal,
+  PlusSquare,
+} from 'lucide-react';
 
-export default function Sidebar() {
-    return (
-        <aside className="bg-white border-r p-4 space-y-6 flex flex-col items-center">
-            {/* 로고 */}
-            <div className="flex space-y-0 items-center justify-center mb-0.5">
-                <img src={sidelogo} alt="Studio Pick Logo" className="h-45 w-auto" />
-            </div>
+const menuItems = [
+  { label: '홈', icon: <Home size={20} />, path: '/' },
+  { label: '스튜디오 탐색', icon: <Camera size={20} />, path: '/studios' },
+  { label: '클래스 탐색', icon: <BookOpen size={20} />, path: '/classes' },
+  { label: '예약', icon: <CalendarCheck size={20} />, path: '/reservation' },
+  { label: '즐겨찾기', icon: <Heart size={20} />, path: '/favorites' },
+  { label: '작품 갤러리', icon: <GalleryHorizontal size={20} />, path: '/gallery' },
+  { label: '스튜디오/클래스 등록', icon: <PlusSquare size={20} />, path: '/studio-class/register' },
+];
 
-            {/* 로그인/회원가입 */}
-            <button className="w-full py-2 bg-lime-500 text-white rounded-md text-sm font-semibold hover:bg-lime-600 transition-colors mb-6">
-                로그인 / 회원가입
-            </button>
+const Sidebar = () => {
+  return (
+    <aside className="w-60 h-screen fixed top-16 left-0 bg-white border-r pt-6 px-4 z-40">
+      <nav className="flex flex-col gap-3">
+        {menuItems.map((item) => (
+          <NavLink
+            key={item.label}
+            to={item.path}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100 transition ${
+                isActive ? 'bg-lime-200 font-semibold' : 'text-gray-700'
+              }`
+            }
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </NavLink>
+        ))}
+      </nav>
+    </aside>
+  );
+};
 
-            {/* 네비게이션 */}
-            <nav className="w-full space-y-3 text-sm text-gray-700">
-                <SidebarItem icon={<AiFillHome />} label="홈" />
-                <SidebarItem icon={<FaCamera />} label="스튜디오 탐색" active />
-                <SidebarItem icon={<FaMusic />} label="클래스" />
-                <SidebarItem icon={<AiFillCalendar />} label="예약 관리" />
-                <SidebarItem icon={<FaUser />} label="마이페이지" />
-                <SidebarItem icon={<AiFillHeart />} label="즐겨찾기" />
-                <SidebarItem icon={<AiFillStar />} label="리뷰 관리" />
-            </nav>
-
-            {/* 하단 메뉴 */}
-            <div className="mt-auto w-full border-t pt-4 space-y-3 text-sm text-gray-700">
-                <SidebarItem icon={<FiSettings />} label="설정" />
-                <SidebarItem icon={<BiHelpCircle />} label="도움말" />
-            </div>
-        </aside>
-    );
-}
-
-function SidebarItem({ icon, label, active }) {
-    return (
-        <div className={`flex items-center cursor-pointer p-2 rounded-md transition-colors ${active ? 'text-lime-600 font-semibold bg-lime-50' : 'hover:text-lime-500 text-gray-700'}`}>
-            <div className="mr-3 text-lg">{icon}</div>
-            {label}
-        </div>
-    );
-}
+export default Sidebar;
