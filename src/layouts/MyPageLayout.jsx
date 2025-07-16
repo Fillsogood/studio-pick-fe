@@ -9,11 +9,23 @@ const MyPageLayout = () => {
     { label: "계정 관리", path: "/account/profile" },
   ];
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+  try {
+    await logout();
+  } catch (e) {
+    console.error("로그아웃 실패:", e);
+  } finally {
     localStorage.removeItem("accessToken");
+
+    // ✅ 1) 홈으로 이동 후
     navigate("/");
-    window.location.reload(); // 로그인 상태 초기화
-  };
+
+    // ✅ 2) 조금 delay 후 새로고침
+    setTimeout(() => {
+      window.location.reload(); // 🔁 여기서 확실히 리렌더링
+    }, 100);
+  }
+};
 
   return (
     <div className="flex bg-gray-50">
