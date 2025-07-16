@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import LoginModal from "../components/LoginModal";
+import { getMyReservations } from "../lib/reservationAPI";
+import {
+  getStatusText,
+  getStatusColor,
+  getActionButtonType,
+  RESERVATION_STATUS,
+} from "../constants/reservationStatus";
 
 const ReservationListPage = () => {
   const [activeTab, setActiveTab] = useState("studio"); // 'studio' 또는 'class'
@@ -11,6 +18,12 @@ const ReservationListPage = () => {
   // 로그인 상태 확인
   const [isLoggedIn, setIsLoggedIn] = useState(true); // 임시로 true로 설정
   const [showLoginModal, setShowLoginModal] = useState(false);
+
+  // API 연동을 위한 상태
+  const [reservations, setReservations] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState(null);
+  const [useMockData, setUseMockData] = useState(true); // API 실패 시 목업 데이터 사용
 
   // 로그인 상태 확인
   useEffect(() => {
@@ -25,94 +38,147 @@ const ReservationListPage = () => {
     }
   }, []);
 
-  // 목업 데이터 - 스튜디오 예약
+  // 예약 목록 조회 API 호출
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const fetchReservations = async () => {
+      setIsLoading(true);
+      setApiError(null);
+
+      try {
+        const params = {
+          page: currentPage,
+          size: 10,
+          status: activeFilter !== "all" ? activeFilter : undefined,
+          // startDate, endDate, studioId는 나중에 추가
+        };
+
+        console.log("API 호출 파라미터:", params);
+        const response = await getMyReservations(params);
+        console.log("API 응답:", response.data);
+
+        if (response.data.success) {
+          setReservations(response.data.data.reservations);
+          setUseMockData(false);
+        } else {
+          throw new Error(response.data.message || "예약 목록 조회 실패");
+        }
+      } catch (error) {
+        console.error("API 호출 실패:", error);
+        setApiError(error.message);
+        setUseMockData(true); // API 실패 시 목업 데이터 사용
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchReservations();
+  }, [isLoggedIn, currentPage, activeFilter]);
+
+  // 목업 데이터 - 스튜디오 예약 (실제 API 스펙에 맞춤)
   const mockStudioReservations = [
     {
       id: 1,
-      status: "confirmed",
       studioName: "스튜디오 A",
-      reservationDate: "2024-01-20",
+      date: "2024-01-20",
       startTime: "14:00",
       endTime: "16:00",
-      location: "서울 강남구 테헤란로 123",
-      price: 50000,
-      paymentStatus: "결제완료",
+      status: RESERVATION_STATUS.CONFIRMED,
+      totalAmount: 50000,
     },
     {
       id: 2,
-      status: "pending",
       studioName: "스튜디오 B",
-      reservationDate: "2024-01-25",
+      date: "2024-01-25",
       startTime: "10:00",
       endTime: "12:00",
-      location: "서울 마포구 홍대로 45",
-      price: 80000,
-      paymentStatus: "결제완료",
+      status: RESERVATION_STATUS.PENDING,
+      totalAmount: 80000,
     },
     {
       id: 3,
-      status: "completed",
       studioName: "스튜디오 C",
-      reservationDate: "2024-01-15",
+      date: "2024-01-15",
       startTime: "18:00",
       endTime: "20:00",
-      location: "서울 성동구 왕십리로 88",
-      price: 120000,
-      paymentStatus: "결제완료",
+      status: RESERVATION_STATUS.COMPLETED,
+      totalAmount: 120000,
     },
     {
       id: 4,
-      status: "cancelled",
       studioName: "스튜디오 D",
-      reservationDate: "2024-01-10",
+      date: "2024-01-10",
       startTime: "09:00",
       endTime: "11:00",
-      location: "경기도 가평군 청평면",
-      price: 90000,
-      paymentStatus: "환불완료",
+      status: RESERVATION_STATUS.CANCELLED,
+      totalAmount: 90000,
+    },
+    {
+      id: 5,
+      studioName: "스튜디오 E",
+      date: "2024-01-30",
+      startTime: "15:00",
+      endTime: "17:00",
+      status: RESERVATION_STATUS.CANCEL_REQUESTED,
+      totalAmount: 60000,
+    },
+    {
+      id: 6,
+      studioName: "스튜디오 F",
+      date: "2024-01-05",
+      startTime: "10:00",
+      endTime: "12:00",
+      status: RESERVATION_STATUS.REFUNDED,
+      totalAmount: 70000,
     },
   ];
 
-  // 목업 데이터 - 클래스 예약
+  // 목업 데이터 - 클래스 예약 (실제 API 스펙에 맞춤)
   const mockClassReservations = [
     {
       id: 1,
-      status: "confirmed",
-      className: "포토그래피 기초 마스터 클래스",
-      reservationDate: "2024-01-15",
-      classDate: "2024-01-20",
-      startTime: "14:00",
-      endTime: "16:00",
-      location: "서울 강남구 테헤란로 123",
+      classTitle: "포토그래피 기초 마스터 클래스",
       instructor: "김민준 사진작가",
-      price: 55000,
-      paymentStatus: "결제완료",
+      date: "2024-01-15",
+      startTime: { hour: 14, minute: 0, second: 0, nano: 0 },
+      studioName: "스튜디오 A",
+      participants: 1,
+      amount: 55000,
+      status: RESERVATION_STATUS.CONFIRMED,
     },
     {
       id: 2,
-      status: "pending",
-      className: "제품 사진 촬영 워크샵",
-      reservationDate: "2024-01-10",
-      classDate: "2024-01-25",
-      startTime: "10:00",
-      endTime: "13:00",
-      location: "서울 마포구 홍대로 45",
+      classTitle: "제품 사진 촬영 워크샵",
       instructor: "이지은 상업 사진작가",
-      price: 75000,
-      paymentStatus: "결제완료",
+      date: "2024-01-10",
+      startTime: { hour: 10, minute: 0, second: 0, nano: 0 },
+      studioName: "스튜디오 B",
+      participants: 1,
+      amount: 75000,
+      status: RESERVATION_STATUS.PENDING,
     },
     {
       id: 3,
-      status: "completed",
-      className: "인물 사진 포트레이트 클래스",
-      reservationDate: "2024-01-05",
-      classDate: "2024-01-15",
-      startTime: "13:00",
-      endTime: "17:00",
-      location: "서울 성동구 왕십리로 88",
+      classTitle: "인물 사진 포트레이트 클래스",
       instructor: "박서연 포트레이트 전문가",
-      price: 120000,
-      paymentStatus: "결제완료",
+      date: "2024-01-05",
+      startTime: { hour: 13, minute: 0, second: 0, nano: 0 },
+      studioName: "스튜디오 C",
+      participants: 1,
+      amount: 120000,
+      status: RESERVATION_STATUS.COMPLETED,
+    },
+    {
+      id: 4,
+      classTitle: "드론 촬영 마스터 클래스",
+      instructor: "최준호 드론 전문가",
+      date: "2024-01-08",
+      startTime: { hour: 16, minute: 0, second: 0, nano: 0 },
+      studioName: "스튜디오 D",
+      participants: 1,
+      amount: 95000,
+      status: RESERVATION_STATUS.CANCEL_REQUESTED,
     },
   ];
 
@@ -123,16 +189,49 @@ const ReservationListPage = () => {
       return [];
     }
 
-    const reservations =
-      activeTab === "studio" ? mockStudioReservations : mockClassReservations;
+    // API 데이터 또는 목업 데이터 사용
+    let allReservations = [];
 
-    let filtered = reservations;
+    if (useMockData || reservations.length === 0) {
+      // 목업 데이터 사용
+      allReservations = [
+        ...mockStudioReservations.map((item) => ({ ...item, type: "studio" })),
+        ...mockClassReservations.map((item) => ({ ...item, type: "class" })),
+      ];
+    } else {
+      // API 데이터 사용
+      allReservations = reservations;
+    }
+
+    // 탭에 따른 필터링
+    let filtered = allReservations.filter((reservation) => {
+      if (activeTab === "studio") {
+        return reservation.type === "studio" || !reservation.type; // 기존 목업 데이터 호환성
+      } else {
+        return reservation.type === "class" || reservation.classTitle; // 기존 목업 데이터 호환성
+      }
+    });
 
     // 상태 필터
     if (activeFilter !== "all") {
-      filtered = filtered.filter(
-        (reservation) => reservation.status === activeFilter
-      );
+      filtered = filtered.filter((reservation) => {
+        switch (activeFilter) {
+          case RESERVATION_STATUS.PENDING:
+            return reservation.status === RESERVATION_STATUS.PENDING;
+          case RESERVATION_STATUS.CONFIRMED:
+            return reservation.status === RESERVATION_STATUS.CONFIRMED;
+          case "cancelled":
+            return [
+              RESERVATION_STATUS.CANCEL_REQUESTED,
+              RESERVATION_STATUS.CANCELLED,
+              RESERVATION_STATUS.REFUNDED,
+            ].includes(reservation.status);
+          case RESERVATION_STATUS.COMPLETED:
+            return reservation.status === RESERVATION_STATUS.COMPLETED;
+          default:
+            return reservation.status === activeFilter;
+        }
+      });
     }
 
     // 검색 필터
@@ -149,24 +248,12 @@ const ReservationListPage = () => {
     return filtered;
   };
 
-  const getStatusText = (status) => {
-    const statusMap = {
-      pending: "대기중",
-      confirmed: "확정",
-      completed: "완료",
-      cancelled: "취소",
-    };
-    return statusMap[status] || status;
-  };
-
-  const getStatusColor = (status) => {
-    const colorMap = {
-      pending: "bg-yellow-100 text-yellow-800",
-      confirmed: "bg-green-100 text-green-800",
-      completed: "bg-blue-100 text-blue-800",
-      cancelled: "bg-red-100 text-red-800",
-    };
-    return colorMap[status] || "bg-gray-100 text-gray-800";
+  // LocalTime 객체를 HH:MM 형식으로 변환
+  const formatTime = (timeObj) => {
+    if (!timeObj || typeof timeObj.hour === "undefined") return "";
+    const hour = timeObj.hour.toString().padStart(2, "0");
+    const minute = timeObj.minute.toString().padStart(2, "0");
+    return `${hour}:${minute}`;
   };
 
   // 예약 취소 처리
@@ -204,43 +291,45 @@ const ReservationListPage = () => {
       <Link
         key="detail"
         to={`/reservation/${reservation.id}`}
-        className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors text-center w-37"
+        className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors text-center w-32 h-10 flex items-center justify-center"
       >
         상세보기
       </Link>
     );
 
-    // 상태별 액션 버튼
-    switch (reservation.status) {
-      case "confirmed":
-      case "pending":
+    // 상태별 액션 버튼 (Enum 기반)
+    const actionType = getActionButtonType(reservation.status);
+
+    switch (actionType) {
+      case "cancel":
         buttons.push(
           <button
             key="cancel"
             onClick={() => handleCancelReservation(reservation.id)}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors text-center w-37"
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors text-center w-32 h-10 flex items-center justify-center"
           >
             취소 요청
           </button>
         );
         break;
-      case "completed":
+
+      case "review":
         buttons.push(
           <button
             key="review"
             onClick={() => handleWriteReview(reservation.id)}
-            className="bg-lime-300 hover:bg-lime-200 text-black px-4 py-2 rounded text-sm font-medium transition-colors text-center w-37"
+            className="bg-lime-300 hover:bg-lime-200 text-black px-4 py-2 rounded text-sm font-medium transition-colors text-center w-32 h-10 flex items-center justify-center"
           >
             리뷰 작성
           </button>
         );
         break;
-      case "cancelled":
+      case "rebook":
         buttons.push(
           <button
             key="rebook"
             onClick={() => handleRebook(reservation)}
-            className="bg-lime-300 hover:bg-lime-200 text-black px-4 py-2 rounded text-sm font-medium transition-colors text-center w-37"
+            className="bg-lime-300 hover:bg-lime-200 text-black px-4 py-2 rounded text-sm font-medium transition-colors text-center w-32 h-10 flex items-center justify-center"
           >
             예약하기
           </button>
@@ -357,24 +446,32 @@ const ReservationListPage = () => {
       <div className="flex flex-col sm:flex-row gap-4">
         {/* 상태 필터 */}
         <div className="flex space-x-3">
-          {["all", "pending", "confirmed", "completed", "cancelled"].map(
-            (filter) => (
-              <button
-                key={filter}
-                onClick={() => {
-                  setActiveFilter(filter);
-                  setCurrentPage(1); // 필터 변경시 첫 페이지로
-                }}
-                className={`px-5 py-2 rounded-lg text-base font-medium transition-colors ${
-                  activeFilter === filter
-                    ? "bg-lime-300 text-black shadow-sm"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {filter === "all" ? "전체" : getStatusText(filter)}
-              </button>
-            )
-          )}
+          {[
+            "all",
+            RESERVATION_STATUS.PENDING,
+            RESERVATION_STATUS.CONFIRMED,
+            "cancelled", // 그룹화된 취소 탭
+            RESERVATION_STATUS.COMPLETED,
+          ].map((filter) => (
+            <button
+              key={filter}
+              onClick={() => {
+                setActiveFilter(filter);
+                setCurrentPage(1); // 필터 변경시 첫 페이지로
+              }}
+              className={`px-5 py-2 rounded-lg text-base font-medium transition-colors ${
+                activeFilter === filter
+                  ? "bg-lime-300 text-black shadow-sm"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {filter === "all"
+                ? "전체"
+                : filter === "cancelled"
+                ? "취소"
+                : getStatusText(filter)}
+            </button>
+          ))}
         </div>
 
         {/* 검색창 */}
@@ -406,9 +503,46 @@ const ReservationListPage = () => {
         </div>
       </div>
 
+      {/* 로딩 상태 */}
+      {isLoading && (
+        <div className="text-center py-16">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-lime-500"></div>
+          <p className="text-gray-500 text-lg mt-4">
+            예약 목록을 불러오는 중...
+          </p>
+        </div>
+      )}
+
+      {/* API 에러 메시지 */}
+      {apiError && !isLoading && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="flex">
+            <svg
+              className="w-5 h-5 text-red-400 mt-0.5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">
+                API 연결 실패
+              </h3>
+              <p className="text-sm text-red-700 mt-1">
+                {apiError} - 목업 데이터를 표시합니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 예약 목록 */}
       <div className="space-y-6">
-        {filteredReservations.length === 0 ? (
+        {!isLoading && filteredReservations.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-gray-500 text-lg">
               {isLoggedIn
@@ -424,7 +558,12 @@ const ReservationListPage = () => {
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
-                  <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <h3 className="text-xl font-bold text-gray-900">
+                      {activeTab === "studio"
+                        ? reservation.studioName
+                        : reservation.classTitle}
+                    </h3>
                     <span
                       className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(
                         reservation.status
@@ -432,19 +571,12 @@ const ReservationListPage = () => {
                     >
                       {getStatusText(reservation.status)}
                     </span>
-                    <h3 className="text-xl font-bold text-gray-900">
-                      {activeTab === "studio"
-                        ? reservation.studioName
-                        : reservation.classTitle}
-                    </h3>
                   </div>
 
                   <div className="text-base text-gray-600 space-y-2">
                     <p>
                       <span className="font-medium">예약일:</span>{" "}
-                      {activeTab === "studio"
-                        ? reservation.date
-                        : reservation.date}
+                      {reservation.date}
                     </p>
                     <p>
                       <span className="font-medium">장소:</span>{" "}
@@ -456,8 +588,11 @@ const ReservationListPage = () => {
                       <span className="font-medium">
                         {activeTab === "studio" ? "이용" : "수업"} 시간:
                       </span>{" "}
-                      {reservation.date} ({reservation.startTime}-
-                      {reservation.endTime})
+                      {reservation.date} (
+                      {activeTab === "studio"
+                        ? `${reservation.startTime}-${reservation.endTime}`
+                        : `${formatTime(reservation.startTime)}-종료`}
+                      )
                     </p>
                     {activeTab === "class" && (
                       <p>
@@ -471,6 +606,12 @@ const ReservationListPage = () => {
                         ? reservation.totalAmount
                         : reservation.amount
                       )?.toLocaleString()}
+                    </p>
+                    <p>
+                      <span className="font-medium">인원:</span>{" "}
+                      {activeTab === "studio"
+                        ? "1명" // 스튜디오 API에는 인원 필드가 없으므로 기본값
+                        : `${reservation.participants}명`}
                     </p>
                     <p>
                       <span className="font-medium">상태:</span>{" "}
