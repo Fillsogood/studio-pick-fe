@@ -1,7 +1,9 @@
-import { Routes, Route } from "react-router-dom";
-import MainLayout from "../layouts/MainLayout";
-import RegisterPage from "../features/auth/RegisterPage";
-import HomePage from "../features/mainhome/HomePage";
+import { Routes, Route } from 'react-router-dom';
+import MainLayout from '../layouts/MainLayout';
+import RegisterPage from '../features/auth/RegisterPage';
+import HomePage from '../features/mainhome/HomePage';
+import StudioListPage from "../features/studio/StudioListPage.jsx";
+import StudioDetailPage from "../features/studio/StudioDetailPage.jsx";
 
 import ProfilePage from "../features/user/ProfilePage";
 import NotificationSettingPage from "../features/user/NotificationSettingPage.jsx";
@@ -16,6 +18,8 @@ const AppRoutes = () => {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/reservation" element={<ReservationListPage />} />
         <Route path="/reservation/:id" element={<ReservationListPage />} />
+        <Route path="/studios" element={<StudioListPage />} />
+        <Route path="/studio/:id" element={<StudioDetailPage />} />
         {/* 다른 페이지 추가 가능 */}
 
 

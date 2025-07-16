@@ -1,24 +1,46 @@
-export default function StudioCard({ studio }) {
+import { Link } from 'react-router-dom';
+import { AiFillHeart, AiOutlineHeart } from 'react-icons/ai';
+
+export default function StudioCard({ studio, onFavoriteClick, isFavorite }) {
     return (
-        <div className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
-            <div className="h-40 bg-gray-100 flex items-center justify-center text-sm text-gray-400">
-                {/* 썸네일 없으면 대체 텍스트 */}
-                {studio.thumbnailUrl ? (
-                    <img src={studio.thumbnailUrl} alt={studio.name} className="w-full h-full object-cover" />
-                ) : (
-                    '대표 이미지 없음'
-                )}
-            </div>
+        <div className="bg-white rounded-lg shadow-md overflow-hidden transform transition-transform hover:scale-[0.95] scale-[0.9] origin-top">
+            <Link to={`/studio/${studio.id}`}>
+                <img
+                    src={studio.thumbnailUrl || `https://via.placeholder.com/300x200?text=Studio+${studio.id}`}
+                    className="w-full h-48 object-cover"
+                    alt={studio.name}
+                />
+            </Link>
+
             <div className="p-4">
-                <h3 className="font-bold text-lg">{studio.name}</h3>
-                <p className="text-sm text-gray-500">{studio.location}</p>
-                <div className="text-sm mt-1">
-                    <span className="text-blue-600 font-semibold">{studio.price.toLocaleString()}원</span> / 시간
+                <div className="flex justify-between items-center mb-2">
+                    <Link to={`/studio/${studio.id}`}>
+                        <h4 className="text-base font-semibold text-gray-800">{studio.name}</h4>
+                    </Link>
+                    <div
+                        className="cursor-pointer text-2xl text-red-400"
+                        onClick={() => onFavoriteClick(studio.id)}
+                        title="즐겨찾기"
+                    >
+                        {isFavorite ? <AiFillHeart /> : <AiOutlineHeart />}
+                    </div>
                 </div>
-                <div className="text-sm text-yellow-500">⭐ {studio.rating}</div>
-                <button className="mt-2 bg-lime-400 text-white text-sm px-3 py-1 rounded hover:bg-lime-500">
+
+                <p className="text-sm text-gray-500">{studio.location}</p>
+
+                <div className="flex justify-between items-center mt-2">
+              <span className="text-sm font-bold text-lime-300">
+                {studio.price.toLocaleString()}원
+              </span>
+                    <span className="text-sm text-yellow-500 flex items-center">⭐ {studio.rating}</span>
+                </div>
+
+                <Link
+                    to={`/studio/${studio.id}`}
+                    className="mt-3 block w-full bg-lime-300 text-black py-2 rounded-md text-sm font-semibold text-center hover:bg-lime-200 transition-colors"
+                >
                     상세보기
-                </button>
+                </Link>
             </div>
         </div>
     );
