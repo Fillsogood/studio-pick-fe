@@ -1,34 +1,74 @@
-import { useEffect, useState } from 'react';
-import { getStudios } from '../../lib/studioAPI';
+import {useEffect, useMemo, useState} from 'react';
 import StudioCard from '../../components/StudioCard';
-import { useNavigate } from 'react-router-dom';
 import Sidebar from "../../components/Sidebar.jsx";
+import {addFavorite} from "../../lib/reviewAPI.js";
+import { useNavigate } from 'react-router-dom';
 
 const mockStudios = [
     {
         id: 1,
-        name: '루미에르 스튜디오',
-        location: '서울 강남구',
-        price: 50000,
+        name: '드림메이커 스튜디오',
+        location: '서울 강동구',
+        price: 55000,
         rating: 4.9,
-        thumbnailUrl: '',
+        thumbnailUrl: 'https://formeqly4682.edge.naverncp.com/service/174473035_399b1646e1e4ceb9c25012dd89a445c4.jpg?type=m&w=900&h=900&autorotate=true&quality=90',
     },
     {
         id: 2,
-        name: '빈티지 팝업 스튜디오',
-        location: '서울 성수동',
-        price: 65000,
-        rating: 4.7,
-        thumbnailUrl: '',
+        name: '종로자연광 스튜디오',
+        location: '서울 송인동',
+        price: 25000,
+        rating: 4.6,
+        thumbnailUrl: 'https://formeqly4682.edge.naverncp.com/service/175000138_9c6703f4f9eb9414b1581c9f9c75c3c0.jpg?type=m&w=900&h=900&autorotate=true&quality=90',
     },
     {
         id: 3,
-        name: '사운드웨이브 스튜디오',
-        location: '서울 마포구',
-        price: 80000,
+        name: '화양재 스튜디오',
+        location: '서울 양재동',
+        price: 120000,
         rating: 4.8,
-        thumbnailUrl: '',
-    }
+        thumbnailUrl: 'https://formeqly4682.edge.naverncp.com/service/175196614_e5a8e7d40d7aa1a88ba0da4842b9919c.jpeg?type=m&w=900&h=900&autorotate=true&quality=90',
+    },
+    {
+        id: 4,
+        name: '서울 LED럭스 스튜디오',
+        location: '서울 신사동',
+        price: 90000,
+        rating: 4.6,
+        thumbnailUrl: 'https://formeqly4682.edge.naverncp.com/service/171178440_1556a293f51b5cc549c568674bc13241.jpeg?type=m&w=900&h=900&autorotate=true&quality=90',
+    },
+    {
+        id: 5,
+        name: '촬영스튜디오 뮤크',
+        location: '서울 영등포구',
+        price: 30000,
+        rating: 4.6,
+        thumbnailUrl: 'https://formeqly4682.edge.naverncp.com/service/173815356_98afb8bd59f8e5b4b4aca154bbfff220.jpg?type=m&w=900&h=900&autorotate=true&quality=90',
+    },
+    {
+        id: 6,
+        name: '블루락 게임PC8대 영등포구점',
+        location: '서울 영등포구',
+        price: 90000,
+        rating: 4.9,
+        thumbnailUrl: 'https://formeqly4682.edge.naverncp.com/service/173286760_50476b2787d9d2e12a2b30d0e86492b5.jpg?type=m&w=900&h=900&autorotate=true&quality=90',
+    },
+    {
+        id: 7,
+        name: '필더그린 스튜디오',
+        location: '서울 성동구',
+        price: 90000,
+        rating: 4.5,
+        thumbnailUrl: 'https://formeqly4682.edge.naverncp.com/service/171197561_c52109ce4e00443b13934f6046752895.jpeg?type=m&w=900&h=900&autorotate=true&quality=90',
+    },
+    {
+        id: 8,
+        name: '무슨 스튜디오',
+        location: '서울 용산구',
+        price: 99000,
+        rating: 4.4,
+        thumbnailUrl: 'https://formeqly4682.edge.naverncp.com/service/165163646_9bc733f89c3d8af01b1802b666845f12.jpeg?type=m&w=900&h=900&autorotate=true&quality=90',
+    },
 ];
 
 const regions = ['전체', '서울', '경기', '인천', '부산', '대구'];
@@ -40,6 +80,9 @@ export default function StudioListPage() {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [sortBy, setSortBy] = useState('popular');
+    const [favorites, setFavorites] = useState([]);
+    const navigate = useNavigate();
+    const isLoggedIn = !!localStorage.getItem('accessToken');
 
     useEffect(() => {
         /*
@@ -76,29 +119,47 @@ export default function StudioListPage() {
         console.log('필터 조건:', selectedRegion, selectedCategory, sortBy);
     }, [selectedRegion, selectedCategory, sortBy]);
 
-    const handleScroll = () => {
-        if (
-            window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 &&
-            hasMore
-        ) {
-            setPage(prev => prev + 1);
+    // 인기 스튜디오 추출
+    const popularStudios = useMemo(() => {
+        return [...studios]
+            .filter(studio => studio.rating >= 4.8)
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 10);
+    }, [studios]);
+
+    const handleFavoriteClick = async (studioId) => {
+        if (!isLoggedIn) {
+            alert('로그인이 필요합니다.');
+            navigate('/login'); // 로그인 페이지로 이동
+            return;
+        }
+
+        try {
+            await addFavorite('STUDIO', studioId);
+            setFavorites(prev => [...prev, studioId]);
+        } catch (error) {
+            console.error('즐겨찾기 등록 실패:', error);
         }
     };
 
     useEffect(() => {
+        const handleScroll = () => {
+            if (
+                window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 &&
+                hasMore
+            ) {
+                setPage(prev => prev + 1);
+            }
+        };
+
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, [hasMore]);
 
     return (
-        <div className="grid grid-cols-[250px_1fr] min-h-screen font-sans">
+        <div className="grid min-h-screen font-sans min-w-[1280px]">
             {/* 왼쪽 사이드바 */}
-            <div className="grid grid-cols-[250px_1fr] min-h-screen font-sans">
-                <Sidebar />
-                <main className="p-8 bg-gray-50 overflow-y-auto">
-                    {/* 오른쪽 내용들 */}
-                </main>
-            </div>
+            <Sidebar />
 
             {/* 오른쪽 본문 */}
             <main className="p-8 bg-gray-50 overflow-y-auto">
@@ -108,14 +169,42 @@ export default function StudioListPage() {
                     <p className="text-base text-gray-500">다양한 스튜디오를 찾아보고 예약하세요</p>
                 </div>
 
-                {/* 카테고리 필터 */}
-                <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">카테고리 필터</h3>
-                    <div className="flex flex-wrap gap-2 text-sm">
+                {/* 인기 스튜디오 */}
+                <div className="mb-12">
+                    <h3 className="text-2xl font-bold mb-4 min-w-[1280px]">인기 스튜디오</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 min-w-[1200px]">
+                        {popularStudios.map(studio => (
+                            <StudioCard
+                                key={studio.id}
+                                studio={studio}
+                                onFavoriteClick={handleFavoriteClick}
+                                isFavorite={favorites.includes(studio.id)}
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                {/* 전체 스튜디오 헤더 */}
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-2xl font-bold">전체 스튜디오</h3>
+                    <select
+                        className="border px-3 py-1 rounded-md bg-white text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-lime-500"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                    >
+                        <option value="popular">인기순</option>
+                        <option value="priceLow">낮은 가격순</option>
+                        <option value="priceHigh">높은 가격순</option>
+                    </select>
+                </div>
+
+                {/* 필터: 카테고리 & 지역 */}
+                <div className="flex flex-wrap items-center gap-4 mb-6">
+                    <div className="flex gap-2">
                         {['전체', '촬영 스튜디오', '공방 스튜디오', '댄스 스튜디오', '영상 스튜디오', '음향 스튜디오'].map((tag, i) => (
                             <button
                                 key={i}
-                                className={`border px-4 py-2 rounded-full transition-colors ${selectedCategory === tag ? 'bg-lime-400 text-white border-lime-400' : 'bg-white hover:bg-gray-100 border-gray-300'}`}
+                                className={`whitespace-nowrap border px-4 py-1.5 rounded-full text-sm ${selectedCategory === tag ? 'bg-lime-300 text-black border-lime-200' : 'bg-white hover:bg-gray-100 border-gray-300'}`}
                                 onClick={() => setSelectedCategory(tag)}
                             >
                                 {tag}
@@ -124,14 +213,13 @@ export default function StudioListPage() {
                     </div>
                 </div>
 
-                {/* 지역 필터 */}
                 <div className="mb-6">
                     <div className="flex items-center flex-wrap gap-2 text-sm">
-                        <span className="mr-2 font-bold text-gray-700">지역:</span>
+                        <span className="mr-2 font-bold text-black whitespace-nowrap">지역:</span>
                         {regions.map(region => (
                             <button
                                 key={region}
-                                className={`px-4 py-2 rounded-full border transition-colors ${selectedRegion === region ? 'bg-lime-400 text-white border-lime-400' : 'bg-white hover:bg-gray-100 border-gray-300'}`}
+                                className={`px-4 whitespace-nowrap py-1.5 rounded-full border text-sm ${selectedRegion === region ? 'bg-lime-300 text-black border-lime-200' : 'bg-white hover:bg-gray-100 border-gray-300'}`}
                                 onClick={() => setSelectedRegion(region)}
                             >
                                 {region}
@@ -140,59 +228,19 @@ export default function StudioListPage() {
                     </div>
                 </div>
 
-                {/* 인기 스튜디오 섹션 */}
-                <div className="mb-8">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-2xl font-bold">인기 스튜디오</h3>
-                        {/* 🔽 정렬 셀렉트 */}
-                        <select
-                            className="border px-3 py-1 rounded-md bg-white text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-lime-500"
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
-                        >
-                            <option value="popular">인기순</option>
-                            <option value="priceLow">낮은 가격순</option>
-                            <option value="priceHigh">높은 가격순</option>
-                        </select>
-                    </div>
-
-                    {/* 🗂 스튜디오 카드 그리드 */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {/* StudioCard 컴포넌트는 실제 구현이 필요합니다. */}
-                        {studios.map(studio => (
-                            <div key={studio.id} className="bg-white rounded-lg shadow-md overflow-hidden transform transition-transform hover:scale-[1.02]">
-                                <img src={`https://via.placeholder.com/300x200?text=Studio+${studio.id}`} alt={studio.name} className="w-full h-48 object-cover" />
-                                <div className="p-4">
-                                    <h4 className="text-lg font-semibold text-gray-800">{studio.name}</h4>
-                                    <p className="text-sm text-gray-500">{studio.location}</p>
-                                    <div className="flex justify-between items-center mt-2">
-                                        <span className="text-lg font-bold text-lime-600">{studio.price}</span>
-                                        <span className="text-sm text-yellow-500 flex items-center">
-                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.683-1.539 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.565-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.381-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z"></path></svg>
-                                            {studio.rating}
-                    </span>
-                                    </div>
-                                    <button className="mt-3 w-full bg-lime-500 text-white py-2 rounded-md text-sm font-semibold hover:bg-lime-600 transition-colors">
-                                        상세보기
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* ⬇ 페이지네이션 */}
-                <div className="mt-8 flex justify-center gap-2">
-                    {[1, 2, 3, 4, 5].map(num => (
-                        <button
-                            key={num}
-                            className="border rounded px-4 py-2 text-sm hover:bg-gray-200 bg-white transition-colors"
-                        >
-                            {num}
-                        </button>
+                {/* 전체 스튜디오 리스트 */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 min-w-[1200px]">
+                    {studios.map(studio => (
+                        <StudioCard
+                            key={studio.id}
+                            studio={studio}
+                            onFavoriteClick={handleFavoriteClick}
+                            isFavorite={favorites.includes(studio.id)}
+                        />
                     ))}
                 </div>
             </main>
         </div>
     );
+
 }
