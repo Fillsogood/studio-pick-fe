@@ -1,36 +1,19 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { logout } from "../lib/authAPI";
-import { useEffect, useState } from "react";
 
 const MyPageLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
-  const [userName, setUserName] = useState("게스트");
-
-  // 로그인 유저 정보 불러오기 (선택사항)
-  useEffect(() => {
-    // TODO: 프로필 API로 사용자 이름 불러오려면 여기서 처리
-  }, []);
 
   const menus = [
     { label: "알림 설정", path: "/account/notification" },
     { label: "계정 관리", path: "/account/profile" },
   ];
 
-  const handleLogout = async () => {
-  try {
-    await logout(); //  백엔드에 쿠키 삭제 요청
-    console.log("로그아웃 요청 성공");
-  } catch (e) {
-    console.error("로그아웃 실패:", e);
-  } finally {
+  const handleLogout = () => {
     localStorage.removeItem("accessToken");
-    setIsLoggedIn(false); // ← Header 등 로그인 상태 제어 시 필요
-    navigate("/");        // 이동은 하되, reload()는 제거
-  }
-};
-
+    navigate("/");
+    window.location.reload(); // 로그인 상태 초기화
+  };
 
   return (
     <div className="flex bg-gray-50">
@@ -41,7 +24,7 @@ const MyPageLayout = () => {
           <div className="flex items-center mb-8">
             <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
             <div>
-              <div className="text-sm font-semibold">{userName}</div>
+              <div className="text-sm font-semibold">Leo0723</div>
               <div className="text-xs text-gray-500">게스트</div>
             </div>
           </div>
