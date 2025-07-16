@@ -20,16 +20,22 @@ const MyPageLayout = () => {
 
   const handleLogout = async () => {
   try {
-    await logout(); //  백엔드에 쿠키 삭제 요청
-    console.log("로그아웃 요청 성공");
+    await logout();
   } catch (e) {
     console.error("로그아웃 실패:", e);
   } finally {
     localStorage.removeItem("accessToken");
-    setIsLoggedIn(false); // ← Header 등 로그인 상태 제어 시 필요
-    navigate("/");        // 이동은 하되, reload()는 제거
+
+    // ✅ 1) 홈으로 이동 후
+    navigate("/");
+
+    // ✅ 2) 조금 delay 후 새로고침
+    setTimeout(() => {
+      window.location.reload(); // 🔁 여기서 확실히 리렌더링
+    }, 100);
   }
 };
+
 
 
   return (
