@@ -1,25 +1,27 @@
-// 예약 가능 시간 조회
-export const getAvailableTimes = (studioId, date) =>
-  axiosInstance.get(`/api/studios/${studioId}/reservations/available-times`, {
-    params: { date },
+import axiosInstance from "./axiosInstance";
+
+// 예약 상세 조회 (토큰에서 userId 자동 추출)
+export const getReservationDetail = (reservationId) =>
+  axiosInstance.get(`/api/reservations/${reservationId}`);
+
+// 예약 취소 (토큰에서 userId 자동 추출)
+export const cancelReservation = (reservationId, cancelReason) =>
+  axiosInstance.patch(`/api/reservations/${reservationId}/cancel`, {
+    cancelReason: cancelReason,
   });
 
-// 예약 생성
-export const createReservation = (studioId, data) =>
-  axiosInstance.post(`/api/studios/${studioId}/reservations`, data);
+// 내 예약 목록 조회 (토큰에서 userId 자동 추출)
+export const getMyReservations = (params) =>
+  axiosInstance.get("/api/reservations/my", { params });
 
-// 사용자 예약 내역
-export const getUserReservations = (params) =>
-  axiosInstance.get('/api/users/reservations', { params });
+// 예약 가능 시간 조회
+export const getAvailableTimes = (studioId, date) =>
+  axiosInstance.get(
+    `/api/reservations/available-times?studioId=${studioId}&date=${date}`
+  );
 
-// 예약 상세 조회
-export const getReservationDetail = (id) =>
-  axiosInstance.get(`/api/reservations/${id}`);
-
-// 예약 취소
-export const cancelReservation = (id, reason) =>
-  axiosInstance.put(`/api/reservations/${id}/cancel`, { reason });
-
-// 예약 공유 링크
-export const shareReservation = (id, platform) =>
-  axiosInstance.post(`/api/reservations/${id}/share`, { platform });
+// 클래스 예약 취소
+export const cancelClassReservation = (reservationId, userId) =>
+  axiosInstance.patch(
+    `/api/users/class-reservations/${reservationId}/cancel?userId=${userId}`
+  );

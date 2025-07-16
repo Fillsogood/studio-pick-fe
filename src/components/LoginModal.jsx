@@ -1,27 +1,28 @@
-import { useState } from 'react';
-import { login } from '../lib/authAPI';
-import { useNavigate } from 'react-router-dom';
-import logo from '../assets/logo.png';
+import { useState } from "react";
+import { login } from "../lib/authAPI";
+import { useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
 
 const LoginModal = ({ onClose, onLoginSuccess }) => { // onLoginSuccess 추가
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const response = await login(email, password);
       const { accessToken } = response.data;
+
       localStorage.setItem('accessToken', accessToken);
 
       if (onLoginSuccess) onLoginSuccess(); // Header에 로그인 상태 전달
       onClose();
-      navigate('/'); // 선택사항
+      navigate('/');
     } catch (err) {
-      setError('이메일 또는 비밀번호가 올바르지 않습니다.');
+      setError("이메일 또는 비밀번호가 올바르지 않습니다.");
     }
   };
 
@@ -74,8 +75,12 @@ const LoginModal = ({ onClose, onLoginSuccess }) => { // onLoginSuccess 추가
               />
               로그인 상태 유지
             </label>
-            <a href="/forgot-password" className="text-lime-400 hover:underline">
+            <a
+              href="/forgot-password"
+              className="text-lime-400 hover:underline"
+            >
               비밀번호를 잊으셨나요?
+
             </a>
           </div>
 

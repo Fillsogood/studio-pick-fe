@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL, // 예: http://localhost:8080
+  baseURL: "http://localhost:8080", // 백엔드 서버 URL
   timeout: 5000,
   withCredentials: true, // 쿠키 사용 시 true
 });
@@ -9,7 +9,7 @@ const axiosInstance = axios.create({
 // 요청 인터셉터 - 요청마다 토큰 자동 삽입
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem("accessToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
