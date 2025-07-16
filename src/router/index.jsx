@@ -1,10 +1,11 @@
-import { Routes, Route } from 'react-router-dom';
-import MainLayout from '../layouts/MainLayout';
-import RegisterPage from '../features/auth/RegisterPage';
-import HomePage from '../features/mainhome/HomePage';
+import AdminLoginPage from '../features/admin/pages/AdminLoginPage';
+import AdminApp from '../features/admin/AdminApp';
+import { Routes, Route } from "react-router-dom";
+import MainLayout from "../layouts/MainLayout";
+import RegisterPage from "../features/auth/RegisterPage";
+import HomePage from "../features/mainhome/HomePage";
 import StudioListPage from "../features/studio/StudioListPage.jsx";
 import StudioDetailPage from "../features/studio/StudioDetailPage.jsx";
-
 import ProfilePage from "../features/user/ProfilePage";
 import NotificationSettingPage from "../features/user/NotificationSettingPage.jsx";
 import MyPageLayout from "../layouts/MyPageLayout";
@@ -13,6 +14,10 @@ import ReservationListPage from "../pages/ReservationListPage";
 const AppRoutes = () => {
   return (
     <Routes>
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/admin/login" element={<AdminLoginPage />} />
+      <Route path="/admin/*" element={<AdminApp />} />
+      {/* 추가 경로 */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/register" element={<RegisterPage />} />
