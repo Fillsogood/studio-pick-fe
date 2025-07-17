@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import LoginModal from "../components/LoginModal";
 import { getMyReservations } from "../lib/reservationAPI";
@@ -10,38 +10,25 @@ import {
 } from "../constants/reservationStatus";
 
 const ReservationListPage = () => {
-  const [activeTab, setActiveTab] = useState("studio"); // 'studio' 또는 'class'
+  const [activeTab, setActiveTab] = useState("studio"); // 'studio' 또는 'workshop'
   const [activeFilter, setActiveFilter] = useState("all"); // 'all', 'pending', 'confirmed', 'completed', 'cancelled'
   const [searchKeyword, setSearchKeyword] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
   // 로그인 상태 확인
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // 임시로 true로 설정
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    // 세션 스토리지에서 로그인 상태 확인
+    return sessionStorage.getItem("isLoggedIn") === "true";
+  });
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   // API 연동을 위한 상태
   const [reservations, setReservations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
-  const [useMockData, setUseMockData] = useState(true); // API 실패 시 목업 데이터 사용
-
-  // 로그인 상태 확인
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    console.log("현재 토큰:", token); // 디버깅용
-    if (token) {
-      setIsLoggedIn(true);
-      console.log("로그인 상태: 로그인됨"); // 디버깅용
-    } else {
-      setIsLoggedIn(false);
-      console.log("로그인 상태: 로그아웃됨"); // 디버깅용
-    }
-  }, []);
 
   // 예약 목록 조회 API 호출
   useEffect(() => {
-    if (!isLoggedIn) return;
-
     const fetchReservations = async () => {
       setIsLoading(true);
       setApiError(null);
@@ -50,137 +37,36 @@ const ReservationListPage = () => {
         const params = {
           page: currentPage,
           size: 10,
-          status: activeFilter !== "all" ? activeFilter : undefined,
+          // status 파라미터 제거 - 모든 예약을 받아온 후 프론트엔드에서 필터링
           // startDate, endDate, studioId는 나중에 추가
         };
 
         console.log("API 호출 파라미터:", params);
         const response = await getMyReservations(params);
-        console.log("API 응답:", response.data);
 
         if (response.data.success) {
           setReservations(response.data.data.reservations);
-          setUseMockData(false);
+          setIsLoggedIn(true);
+          sessionStorage.setItem("isLoggedIn", "true");
         } else {
           throw new Error(response.data.message || "예약 목록 조회 실패");
         }
       } catch (error) {
         console.error("API 호출 실패:", error);
         setApiError(error.message);
-        setUseMockData(true); // API 실패 시 목업 데이터 사용
+
+        // 401 에러인 경우 로그아웃 상태로 설정
+        if (error.response && error.response.status === 401) {
+          setIsLoggedIn(false);
+          sessionStorage.removeItem("isLoggedIn"); // 세션 스토리지에서 제거
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchReservations();
-  }, [isLoggedIn, currentPage, activeFilter]);
-
-  // 목업 데이터 - 스튜디오 예약 (실제 API 스펙에 맞춤)
-  const mockStudioReservations = [
-    {
-      id: 1,
-      studioName: "스튜디오 A",
-      date: "2024-01-20",
-      startTime: "14:00",
-      endTime: "16:00",
-      status: RESERVATION_STATUS.CONFIRMED,
-      totalAmount: 50000,
-    },
-    {
-      id: 2,
-      studioName: "스튜디오 B",
-      date: "2024-01-25",
-      startTime: "10:00",
-      endTime: "12:00",
-      status: RESERVATION_STATUS.PENDING,
-      totalAmount: 80000,
-    },
-    {
-      id: 3,
-      studioName: "스튜디오 C",
-      date: "2024-01-15",
-      startTime: "18:00",
-      endTime: "20:00",
-      status: RESERVATION_STATUS.COMPLETED,
-      totalAmount: 120000,
-    },
-    {
-      id: 4,
-      studioName: "스튜디오 D",
-      date: "2024-01-10",
-      startTime: "09:00",
-      endTime: "11:00",
-      status: RESERVATION_STATUS.CANCELLED,
-      totalAmount: 90000,
-    },
-    {
-      id: 5,
-      studioName: "스튜디오 E",
-      date: "2024-01-30",
-      startTime: "15:00",
-      endTime: "17:00",
-      status: RESERVATION_STATUS.CANCEL_REQUESTED,
-      totalAmount: 60000,
-    },
-    {
-      id: 6,
-      studioName: "스튜디오 F",
-      date: "2024-01-05",
-      startTime: "10:00",
-      endTime: "12:00",
-      status: RESERVATION_STATUS.REFUNDED,
-      totalAmount: 70000,
-    },
-  ];
-
-  // 목업 데이터 - 클래스 예약 (실제 API 스펙에 맞춤)
-  const mockClassReservations = [
-    {
-      id: 1,
-      classTitle: "포토그래피 기초 마스터 클래스",
-      instructor: "김민준 사진작가",
-      date: "2024-01-15",
-      startTime: { hour: 14, minute: 0, second: 0, nano: 0 },
-      studioName: "스튜디오 A",
-      participants: 1,
-      amount: 55000,
-      status: RESERVATION_STATUS.CONFIRMED,
-    },
-    {
-      id: 2,
-      classTitle: "제품 사진 촬영 워크샵",
-      instructor: "이지은 상업 사진작가",
-      date: "2024-01-10",
-      startTime: { hour: 10, minute: 0, second: 0, nano: 0 },
-      studioName: "스튜디오 B",
-      participants: 1,
-      amount: 75000,
-      status: RESERVATION_STATUS.PENDING,
-    },
-    {
-      id: 3,
-      classTitle: "인물 사진 포트레이트 클래스",
-      instructor: "박서연 포트레이트 전문가",
-      date: "2024-01-05",
-      startTime: { hour: 13, minute: 0, second: 0, nano: 0 },
-      studioName: "스튜디오 C",
-      participants: 1,
-      amount: 120000,
-      status: RESERVATION_STATUS.COMPLETED,
-    },
-    {
-      id: 4,
-      classTitle: "드론 촬영 마스터 클래스",
-      instructor: "최준호 드론 전문가",
-      date: "2024-01-08",
-      startTime: { hour: 16, minute: 0, second: 0, nano: 0 },
-      studioName: "스튜디오 D",
-      participants: 1,
-      amount: 95000,
-      status: RESERVATION_STATUS.CANCEL_REQUESTED,
-    },
-  ];
+  }, [currentPage]); // activeFilter 의존성 제거
 
   // 필터링된 예약 목록
   const getFilteredReservations = () => {
@@ -189,26 +75,15 @@ const ReservationListPage = () => {
       return [];
     }
 
-    // API 데이터 또는 목업 데이터 사용
-    let allReservations = [];
-
-    if (useMockData || reservations.length === 0) {
-      // 목업 데이터 사용
-      allReservations = [
-        ...mockStudioReservations.map((item) => ({ ...item, type: "studio" })),
-        ...mockClassReservations.map((item) => ({ ...item, type: "class" })),
-      ];
-    } else {
-      // API 데이터 사용
-      allReservations = reservations;
-    }
+    // API 데이터 사용
+    let allReservations = reservations;
 
     // 탭에 따른 필터링
     let filtered = allReservations.filter((reservation) => {
       if (activeTab === "studio") {
-        return reservation.type === "studio" || !reservation.type; // 기존 목업 데이터 호환성
+        return reservation.type === "studio";
       } else {
-        return reservation.type === "class" || reservation.classTitle; // 기존 목업 데이터 호환성
+        return reservation.type === "workshop";
       }
     });
 
@@ -217,17 +92,15 @@ const ReservationListPage = () => {
       filtered = filtered.filter((reservation) => {
         switch (activeFilter) {
           case RESERVATION_STATUS.PENDING:
-            return reservation.status === RESERVATION_STATUS.PENDING;
+            return reservation.status === "pending";
           case RESERVATION_STATUS.CONFIRMED:
-            return reservation.status === RESERVATION_STATUS.CONFIRMED;
+            return reservation.status === "confirmed";
           case "cancelled":
-            return [
-              RESERVATION_STATUS.CANCEL_REQUESTED,
-              RESERVATION_STATUS.CANCELLED,
-              RESERVATION_STATUS.REFUNDED,
-            ].includes(reservation.status);
+            return ["cancel_requested", "cancelled", "refunded"].includes(
+              reservation.status
+            );
           case RESERVATION_STATUS.COMPLETED:
-            return reservation.status === RESERVATION_STATUS.COMPLETED;
+            return reservation.status === "completed";
           default:
             return reservation.status === activeFilter;
         }
@@ -240,7 +113,7 @@ const ReservationListPage = () => {
         const searchTarget =
           activeTab === "studio"
             ? reservation.studioName
-            : reservation.classTitle;
+            : reservation.workshopTitle || reservation.studioName;
         return searchTarget.toLowerCase().includes(searchKeyword.toLowerCase());
       });
     }
@@ -248,16 +121,8 @@ const ReservationListPage = () => {
     return filtered;
   };
 
-  // LocalTime 객체를 HH:MM 형식으로 변환
-  const formatTime = (timeObj) => {
-    if (!timeObj || typeof timeObj.hour === "undefined") return "";
-    const hour = timeObj.hour.toString().padStart(2, "0");
-    const minute = timeObj.minute.toString().padStart(2, "0");
-    return `${hour}:${minute}`;
-  };
-
   // 예약 취소 처리
-  const handleCancelReservation = (reservationId) => {
+  const handleCancelReservation = () => {
     if (!isLoggedIn) {
       alert("로그인이 필요합니다.");
       return;
@@ -266,7 +131,7 @@ const ReservationListPage = () => {
   };
 
   // 리뷰 작성 처리
-  const handleWriteReview = (reservationId) => {
+  const handleWriteReview = () => {
     if (!isLoggedIn) {
       alert("로그인이 필요합니다.");
       return;
@@ -275,7 +140,7 @@ const ReservationListPage = () => {
   };
 
   // 다시 예약하기 처리
-  const handleRebook = (reservation) => {
+  const handleRebook = () => {
     if (!isLoggedIn) {
       alert("로그인이 필요합니다.");
       return;
@@ -291,7 +156,7 @@ const ReservationListPage = () => {
       <Link
         key="detail"
         to={`/reservation/${reservation.id}`}
-        className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors text-center w-32 h-10 flex items-center justify-center"
+        className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors text-center w-24 h-9 flex items-center justify-center"
       >
         상세보기
       </Link>
@@ -306,7 +171,7 @@ const ReservationListPage = () => {
           <button
             key="cancel"
             onClick={() => handleCancelReservation(reservation.id)}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors text-center w-32 h-10 flex items-center justify-center"
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors text-center w-24 h-9 flex items-center justify-center"
           >
             취소 요청
           </button>
@@ -318,7 +183,7 @@ const ReservationListPage = () => {
           <button
             key="review"
             onClick={() => handleWriteReview(reservation.id)}
-            className="bg-lime-300 hover:bg-lime-200 text-black px-4 py-2 rounded text-sm font-medium transition-colors text-center w-32 h-10 flex items-center justify-center"
+            className="bg-lime-300 hover:bg-lime-200 text-black px-4 py-2 rounded text-sm font-medium transition-colors text-center w-24 h-9 flex items-center justify-center"
           >
             리뷰 작성
           </button>
@@ -329,7 +194,7 @@ const ReservationListPage = () => {
           <button
             key="rebook"
             onClick={() => handleRebook(reservation)}
-            className="bg-lime-300 hover:bg-lime-200 text-black px-4 py-2 rounded text-sm font-medium transition-colors text-center w-32 h-10 flex items-center justify-center"
+            className="bg-lime-300 hover:bg-lime-200 text-black px-4 py-2 rounded text-sm font-medium transition-colors text-center w-24 h-9 flex items-center justify-center"
           >
             예약하기
           </button>
@@ -408,10 +273,10 @@ const ReservationListPage = () => {
       {/* 페이지 제목 */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-3">
-          {activeTab === "studio" ? "스튜디오 예약 내역" : "클래스 예약 내역"}
+          {activeTab === "studio" ? "스튜디오 예약 내역" : "공방 예약 내역"}
         </h1>
         <p className="text-gray-600 text-lg">
-          예약된 {activeTab === "studio" ? "스튜디오" : "클래스"} 목록과 상태를
+          예약된 {activeTab === "studio" ? "스튜디오" : "공방"} 목록과 상태를
           확인하실 수 있습니다.
         </p>
       </div>
@@ -430,14 +295,14 @@ const ReservationListPage = () => {
             스튜디오 예약
           </button>
           <button
-            onClick={() => setActiveTab("class")}
+            onClick={() => setActiveTab("workshop")}
             className={`py-3 px-1 border-b-2 font-medium text-base ${
-              activeTab === "class"
+              activeTab === "workshop"
                 ? "border-lime-500 text-lime-600"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             }`}
           >
-            클래스 예약
+            공방 예약
           </button>
         </nav>
       </div>
@@ -480,7 +345,7 @@ const ReservationListPage = () => {
             <input
               type="text"
               placeholder={`${
-                activeTab === "studio" ? "스튜디오명" : "클래스명"
+                activeTab === "studio" ? "스튜디오명" : "공방명"
               } 검색`}
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
@@ -532,9 +397,7 @@ const ReservationListPage = () => {
               <h3 className="text-sm font-medium text-red-800">
                 API 연결 실패
               </h3>
-              <p className="text-sm text-red-700 mt-1">
-                {apiError} - 목업 데이터를 표시합니다.
-              </p>
+              <p className="text-sm text-red-700 mt-1">{apiError}</p>
             </div>
           </div>
         </div>
@@ -554,74 +417,95 @@ const ReservationListPage = () => {
           filteredReservations.map((reservation) => (
             <div
               key={reservation.id}
-              className="bg-white rounded-xl shadow-md border border-gray-200 p-8 hover:shadow-lg transition-shadow"
+              className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow"
             >
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-4">
-                    <h3 className="text-xl font-bold text-gray-900">
-                      {activeTab === "studio"
-                        ? reservation.studioName
-                        : reservation.classTitle}
-                    </h3>
-                    <span
-                      className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(
-                        reservation.status
-                      )}`}
-                    >
-                      {getStatusText(reservation.status)}
-                    </span>
-                  </div>
-
-                  <div className="text-base text-gray-600 space-y-2">
-                    <p>
-                      <span className="font-medium">예약일:</span>{" "}
-                      {reservation.date}
-                    </p>
-                    <p>
-                      <span className="font-medium">장소:</span>{" "}
-                      {activeTab === "studio"
-                        ? reservation.studioName
-                        : reservation.studioName}
-                    </p>
-                    <p>
-                      <span className="font-medium">
-                        {activeTab === "studio" ? "이용" : "수업"} 시간:
-                      </span>{" "}
-                      {reservation.date} (
-                      {activeTab === "studio"
-                        ? `${reservation.startTime}-${reservation.endTime}`
-                        : `${formatTime(reservation.startTime)}-종료`}
-                      )
-                    </p>
-                    {activeTab === "class" && (
-                      <p>
-                        <span className="font-medium">강사:</span>{" "}
-                        {reservation.instructor}
-                      </p>
-                    )}
-                    <p>
-                      <span className="font-medium">가격:</span> ₩
-                      {(activeTab === "studio"
-                        ? reservation.totalAmount
-                        : reservation.amount
-                      )?.toLocaleString()}
-                    </p>
-                    <p>
-                      <span className="font-medium">인원:</span>{" "}
-                      {activeTab === "studio"
-                        ? "1명" // 스튜디오 API에는 인원 필드가 없으므로 기본값
-                        : `${reservation.participants}명`}
-                    </p>
-                    <p>
-                      <span className="font-medium">상태:</span>{" "}
-                      {getStatusText(reservation.status)}
-                    </p>
-                  </div>
+              <div className="flex flex-col sm:flex-row gap-6">
+                {/* 이미지 */}
+                <div className="w-full sm:w-48 h-48 rounded-lg overflow-hidden bg-gray-200">
+                  {activeTab === "studio" && reservation.studioImageUrl ? (
+                    <img
+                      src={reservation.studioImageUrl}
+                      alt={reservation.studioName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : activeTab === "workshop" &&
+                    reservation.workshopImageUrl ? (
+                    <img
+                      src={reservation.workshopImageUrl}
+                      alt={reservation.workshopTitle}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-300 flex items-center justify-center">
+                      <svg
+                        className="w-12 h-12 text-gray-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  {getActionButtons(reservation)}
+                {/* 텍스트 + 버튼 */}
+                <div className="flex-1 flex flex-col justify-between">
+                  <div>
+                    {/* 제목 + 상태 */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {activeTab === "studio"
+                          ? reservation.studioName
+                          : reservation.workshopTitle || reservation.studioName}
+                      </h3>
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
+                          reservation.status
+                        )}`}
+                      >
+                        {getStatusText(reservation.status)}
+                      </span>
+                    </div>
+
+                    {/* 예약 정보 */}
+                    <div className="text-base text-gray-600 space-y-2">
+                      <p>
+                        <span className="font-medium">예약일:</span>{" "}
+                        {reservation.date}
+                      </p>
+                      <p>
+                        <span className="font-medium">장소:</span>{" "}
+                        {reservation.studioName}
+                      </p>
+                      <p>
+                        <span className="font-medium">
+                          {activeTab === "studio" ? "이용" : "수업"} 시간:
+                        </span>{" "}
+                        {reservation.startTime} - {reservation.endTime}
+                      </p>
+                      {activeTab === "workshop" && reservation.instructor && (
+                        <p>
+                          <span className="font-medium">강사:</span>{" "}
+                          {reservation.instructor}
+                        </p>
+                      )}
+                      <p>
+                        <span className="font-medium">가격:</span> ₩
+                        {reservation.totalAmount?.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 버튼 */}
+                  <div className="flex justify-end mt-4">
+                    <div className="flex gap-2 flex-wrap">
+                      {getActionButtons(reservation)}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

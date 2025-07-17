@@ -6,4 +6,5 @@ const axiosInstance = axios.create({
   withCredentials: true, // 쿠키 사용 시 true
 });
 
+
 export default axiosInstance;

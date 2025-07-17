@@ -2,6 +2,8 @@ import { Routes, Route } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import RegisterPage from '../features/auth/RegisterPage';
 import HomePage from '../features/mainhome/HomePage';
+import AdminLoginPage from "../features/admin/pages/AdminLoginPage";
+import AdminApp from "../features/admin/AdminApp";
 import StudioListPage from "../features/studio/StudioListPage.jsx";
 import StudioDetailPage from "../features/studio/StudioDetailPage.jsx";
 import ForgotPasswordPage from '../features/user/ForgotPasswordPage.jsx';
@@ -41,8 +43,6 @@ const AppRoutes = () => {
           <Route path="profile" element={<ProfilePage />} />
           <Route path="notification" element={<NotificationSettingPage />} />
         </Route>
-
-
       </Route>
     </Routes>
   );
