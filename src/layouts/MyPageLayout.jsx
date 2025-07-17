@@ -1,4 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { logout } from "../lib/authAPI";
 
 const MyPageLayout = () => {
   const location = useLocation();
@@ -10,22 +11,29 @@ const MyPageLayout = () => {
   ];
 
   const handleLogout = async () => {
-  try {
-    await logout();
-  } catch (e) {
-    console.error("로그아웃 실패:", e);
-  } finally {
-    localStorage.removeItem("accessToken");
+    const loginType = localStorage.getItem("loginType"); // "kakao" or "local"
 
-    // ✅ 1) 홈으로 이동 후
-    navigate("/");
+    if (loginType === "kakao") {
+      // 카카오 계정 로그아웃까지
+      const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
+      const LOGOUT_REDIRECT_URI = import.meta.env.VITE_KAKAO_LOGOUT_REDIRECT_URI;
 
-    // ✅ 2) 조금 delay 후 새로고침
-    setTimeout(() => {
-      window.location.reload(); // 🔁 여기서 확실히 리렌더링
-    }, 100);
-  }
-};
+      const kakaoLogoutUrl = `https://kauth.kakao.com/oauth/logout?client_id=${REST_API_KEY}&logout_redirect_uri=${LOGOUT_REDIRECT_URI}`;
+      window.location.href = kakaoLogoutUrl;
+    } else {
+      // 일반 로그인: 서버 로그아웃만 처리
+      try {
+        await logout(); // 서버에서 쿠키 삭제
+      } catch (e) {
+        console.error("로그아웃 실패:", e);
+      } finally {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("loginType"); // optional
+        navigate("/");
+        setTimeout(() => window.location.reload(), 100);
+      }
+    }
+  };
 
   return (
     <div className="flex bg-gray-50">

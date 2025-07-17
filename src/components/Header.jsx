@@ -11,9 +11,13 @@ const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (token) setIsLoggedIn(true);
-  }, []);
+  const flag = localStorage.getItem("isLoggedIn");
+  if (flag === "true") {
+    setIsLoggedIn(true);                 // 상태 반영
+    localStorage.removeItem("isLoggedIn"); // 플래그 1회성 처리
+  }
+}, []);
+
 
 
   return (
