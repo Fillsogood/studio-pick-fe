@@ -1,13 +1,13 @@
 // 관리자 API 모듈 통합 default import
 import adminAuthAPI from './adminAuthAPI';
-import dashboardAPI from './dashboardAPI';
-import studioAPI from './studioAPI';
-import userAPI from './userAPI';
-import reservationAPI from './reservationAPI';
-import salesAPI from './salesAPI';
-import reportAPI from './reportAPI';
-import refundAPI from './refundAPI';
-import systemSettingAPI from './systemSettingAPI';
+import dashboardAPI from './adminDashboardAPI';
+import studioAPI from './adminStudioAPI';
+import userAPI from './adminUserAPI';
+import reservationAPI from './adminReservationAPI';
+import salesAPI from './adminSalesAPI';
+import reportAPI from './adminReportAPI';
+import refundAPI from './adminRefundAPI';
+import systemSettingAPI from './adminSystemSettingAPI';
 
 export default {
   adminAuthAPI,

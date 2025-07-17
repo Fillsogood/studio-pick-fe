@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Eye, CheckCircle, XCircle, AlertTriangle, Filter, Search } from 'lucide-react';
 import { Table } from '../components/common/DataComponents';
 import { Button, Badge, Input } from '../components/common';
-import adminReportAPI from '../../../lib/admin/reportAPI';
+import adminReportAPI from '../../../lib/admin/adminReportAPI';
 
 const ReportManagementPage = () => {
   const [reports, setReports] = useState([]);

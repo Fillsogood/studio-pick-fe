@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, Users, AlertCircle, RefreshCw, Search, Download } from 'lucide-react';
 import { Table, StatCard, SimpleBarChart, AlertCard } from '../components/common/DataComponents';
 import { Button, Badge, Input } from '../components/common';
-import reservationAPI from '../../../lib/admin/reservationAPI';
+import reservationAPI from '../../../lib/admin/adminReservationAPI';
 import { formatDate, formatDateTime, getStatusBadgeColor, getStatusText, STATUS_CODES } from '../../../lib/admin';
 
 const BookingMonitoringPage = () => {

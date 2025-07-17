@@ -5,7 +5,7 @@ import axiosInstance from '../axiosInstance';
  * 백엔드: RefundAdminController (/api/admin/refunds)
  */
 
-const ADMIN_REFUND_API_BASE = '/admin';
+const ADMIN_REFUND_API_BASE = '/api/admin';
 
 export const adminRefundAPI = {
   /**

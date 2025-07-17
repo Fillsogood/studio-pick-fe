@@ -5,7 +5,7 @@ import axiosInstance from '../axiosInstance';
  * 백엔드: SystemSettingAdminController (/api/admin/settings)
  */
 
-const ADMIN_SETTING_API_BASE = '/admin/settings';
+const ADMIN_SETTING_API_BASE = '/api/admin/settings';
 
 export const adminSystemSettingAPI = {
   getAllSettings: async () => {

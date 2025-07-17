@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { Table } from '../components/common/DataComponents';
 import { Button, Badge, Input } from '../components/common';
-import userAPI from '../../../lib/admin/userAPI';
+import userAPI from '../../../lib/admin/adminUserAPI';
 import { formatDate, formatDateTime, getStatusBadgeColor, getStatusText, STATUS_CODES, USER_ROLES } from '../../../lib/admin';
 import UserDetailModal from '../components/modals/UserDetailModal';
 import CreateUserModal from '../components/modals/CreateUserModal';

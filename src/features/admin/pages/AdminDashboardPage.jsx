@@ -10,9 +10,9 @@ import {
 } from 'lucide-react';
 import { StatCard, SimpleBarChart, SimplePieChart, Table } from '../components/common/DataComponents';
 import { Button } from '../components/common';
-import userAPI from '../../../lib/admin/userAPI';
-import studioAPI from '../../../lib/admin/studioAPI';
-import reservationAPI from '../../../lib/admin/reservationAPI';
+import userAPI from '../../../lib/admin/adminUserAPI';
+import studioAPI from '../../../lib/admin/adminStudioAPI';
+import reservationAPI from '../../../lib/admin/adminReservationAPI';
 import { formatCurrency, formatDateTime, getStatusBadgeColor, getStatusText } from '../../../lib/admin';
 
 const AdminDashboardPage = () => {

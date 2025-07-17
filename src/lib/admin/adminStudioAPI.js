@@ -5,7 +5,7 @@ import axiosInstance from '../axiosInstance';
  * 백엔드: AdminStudioController
  */
 
-const ADMIN_STUDIO_API_BASE = '/admin/studios';
+const ADMIN_STUDIO_API_BASE = '/api/admin/studios';
 
 export const adminStudioAPI = {
   /**

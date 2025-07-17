@@ -5,7 +5,7 @@ import axiosInstance from '../axiosInstance';
  * 백엔드: AdminSettlementController
  */
 
-const ADMIN_SETTLEMENT_API_BASE = '/admin/settlements';
+const ADMIN_SETTLEMENT_API_BASE = '/api/admin/settlements';
 
 const approveSettlement = async (settlementId) => {
   const response = await axiosInstance.post(`${ADMIN_SETTLEMENT_API_BASE}/${settlementId}/approve`);

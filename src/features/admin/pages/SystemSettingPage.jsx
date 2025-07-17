@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Settings, Save, Plus, Edit, Trash2, Search, Filter } from 'lucide-react';
 import { Table } from '../components/common/DataComponents';
 import { Button, Badge, Input } from '../components/common';
-import adminSystemSettingAPI from '../../../lib/admin/systemSettingAPI';
+import adminSystemSettingAPI from '../../../lib/admin/adminSystemSettingAPI';
 
 const SystemSettingPage = () => {
   const [settings, setSettings] = useState([]);

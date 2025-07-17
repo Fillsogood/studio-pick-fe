@@ -4,7 +4,7 @@ import {
   Lock, Unlock,
 } from 'lucide-react';
 import { Button, Badge, Input } from '../common';
-import userAPI from '../../../../lib/admin/userAPI';
+import userAPI from '../../../../lib/admin/adminUserAPI';
 import { formatDateTime, getStatusBadgeColor, getStatusText, STATUS_CODES, USER_ROLES } from '../../../../lib/admin';
 
 const UserDetailModal = ({ user, isOpen, onClose, onUserUpdated }) => {

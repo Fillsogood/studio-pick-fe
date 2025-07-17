@@ -5,7 +5,7 @@ import axiosInstance from '../axiosInstance';
  * 백엔드: DashboardAdminController (/api/admin)
  */
 
-const ADMIN_DASHBOARD_API_BASE = '/admin';
+const ADMIN_DASHBOARD_API_BASE = '/api/admin';
 
 export const adminDashboardAPI = {
   /**

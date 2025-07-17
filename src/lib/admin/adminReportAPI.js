@@ -5,7 +5,7 @@ import axiosInstance from '../axiosInstance';
  * 백엔드: ReportAdminController (/api/admin/reports)
  */
 
-const ADMIN_REPORT_API_BASE = '/admin/reports';
+const ADMIN_REPORT_API_BASE = '/apiadmin/reports';
 
 export const adminReportAPI = {
   /**

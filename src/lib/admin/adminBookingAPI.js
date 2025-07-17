@@ -5,7 +5,7 @@ import axiosInstance from '../axiosInstance';
  * 백엔드: BookingAdminController (/api/admin/bookings)
  */
 
-const ADMIN_BOOKING_API_BASE = '/admin/bookings';
+const ADMIN_BOOKING_API_BASE = '/api/admin/bookings';
 
 export const adminBookingAPI = {
   /**

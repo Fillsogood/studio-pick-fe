@@ -5,7 +5,7 @@ import axiosInstance from '../axiosInstance';
  * 백엔드: UserAdminController (/api/admin/users)
  */
 
-const ADMIN_USER_API_BASE = '/admin/users';
+const ADMIN_USER_API_BASE = '/api/admin/users';
 
 export const adminUserAPI = {
   // === 기본 CRUD 작업 ===
