@@ -1,29 +1,109 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { register } from '../../lib/authAPI';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { register } from "../../lib/authAPI";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    phone: '',
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
   });
-  const [error, setError] = useState('');
+
+  const [error, setError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === "phone") {
+      const onlyNumber = value.replace(/\D/g, "");
+      let formatted = onlyNumber;
+
+      if (onlyNumber.length <= 3) {
+        formatted = onlyNumber;
+      } else if (onlyNumber.length <= 7) {
+        formatted = `${onlyNumber.slice(0, 3)}-${onlyNumber.slice(3)}`;
+      } else {
+        formatted = `${onlyNumber.slice(0, 3)}-${onlyNumber.slice(
+          3,
+          7
+        )}-${onlyNumber.slice(7, 11)}`;
+      }
+
+      setForm({ ...form, phone: formatted });
+    } else if (name === "password") {
+      setForm({ ...form, [name]: value });
+
+      if (!passwordRegex.test(value)) {
+        setPasswordError(
+          "비밀번호 형식을 확인해주세요. (8~20자, 대소문자/숫자/특수문자 포함)"
+        );
+      } else {
+        setPasswordError("");
+      }
+
+      // 비밀번호 변경 시 확인 필드와 비교도 다시 체크
+      if (form.confirmPassword && form.confirmPassword !== value) {
+        setConfirmPasswordError("비밀번호가 일치하지 않습니다.");
+      } else {
+        setConfirmPasswordError("");
+      }
+    } else if (name === "confirmPassword") {
+      setForm({ ...form, [name]: value });
+
+      if (form.password && form.password !== value) {
+        setConfirmPasswordError("비밀번호가 일치하지 않습니다.");
+      } else {
+        setConfirmPasswordError("");
+      }
+    } else {
+      setForm({ ...form, [name]: value });
+    }
+  };
+
+  const formatPhoneNumber = (number) => {
+    const digitsOnly = number.replace(/\D/g, "");
+    if (digitsOnly.length === 11 && digitsOnly.startsWith("010")) {
+      return `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(
+        3,
+        7
+      )}-${digitsOnly.slice(7)}`;
+    }
+    return number;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
+
+    if (!passwordRegex.test(form.password)) {
+      setPasswordError(
+        "비밀번호 형식을 확인해주세요. (8~20자, 대소문자/숫자/특수문자 포함)"
+      );
+      return;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      setConfirmPasswordError("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    const formattedPhone = formatPhoneNumber(form.phone);
+
     try {
-      await register(form);
-      navigate('/login'); // 회원가입 성공 시 로그인 페이지로 이동
+      await register({ ...form, phone: formattedPhone });
+      alert("회원가입이 완료되었습니다!");
+      navigate("/");
     } catch (err) {
-      setError('회원가입에 실패했습니다. 입력 내용을 확인해주세요.');
+      console.error(err.response?.data || err.message);
+      setError("회원가입에 실패했습니다. 입력 내용을 확인해주세요.");
     }
   };
 
@@ -51,21 +131,43 @@ const RegisterPage = () => {
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-yellow-300"
             required
           />
-          <input
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="비밀번호"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-yellow-300"
-            required
-          />
+          <div>
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="비밀번호"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-yellow-300"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1 pl-2">
+              비밀번호는 8~20자, 대소문자/숫자/특수문자를 모두 포함해야 합니다.
+            </p>
+            {passwordError && (
+              <p className="text-xs text-red-500 pl-2">{passwordError}</p>
+            )}
+          </div>
+          <div>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              placeholder="비밀번호 확인"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-yellow-300"
+              required
+            />
+            {confirmPasswordError && (
+              <p className="text-xs text-red-500 pl-2" >{confirmPasswordError}</p>
+            )}
+          </div>
           <input
             type="tel"
             name="phone"
             value={form.phone}
             onChange={handleChange}
-            placeholder="전화번호"
+            placeholder="전화번호 (010-0000-0000)"
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-yellow-300"
             required
           />
@@ -81,7 +183,7 @@ const RegisterPage = () => {
         </form>
 
         <p className="text-center mt-4 text-sm text-gray-500">
-          이미 계정이 있으신가요?{' '}
+          이미 계정이 있으신가요?{" "}
           <a href="/login" className="text-blue-500 hover:underline">
             로그인
           </a>
