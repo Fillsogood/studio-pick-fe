@@ -1,11 +1,11 @@
-import AdminLoginPage from '../features/admin/pages/AdminLoginPage';
-import AdminApp from '../features/admin/AdminApp';
-import { Routes, Route } from "react-router-dom";
-import MainLayout from "../layouts/MainLayout";
-import RegisterPage from "../features/auth/RegisterPage";
-import HomePage from "../features/mainhome/HomePage";
+import { Routes, Route } from 'react-router-dom';
+import MainLayout from '../layouts/MainLayout';
+import RegisterPage from '../features/auth/RegisterPage';
+import HomePage from '../features/mainhome/HomePage';
 import StudioListPage from "../features/studio/StudioListPage.jsx";
 import StudioDetailPage from "../features/studio/StudioDetailPage.jsx";
+import ForgotPasswordPage from '../features/user/ForgotPasswordPage.jsx';
+
 import ProfilePage from "../features/user/ProfilePage";
 import NotificationSettingPage from "../features/user/NotificationSettingPage.jsx";
 import MyPageLayout from "../layouts/MyPageLayout";
@@ -14,9 +14,13 @@ import ReservationListPage from "../pages/ReservationListPage";
 import OAuthKakaoCallbackPage from '../features/auth/OAuthKakaoCallbackPage.jsx';
 import OAuthKakaoLogoutCallbackPage from '../features/auth/OAuthKakaoLogoutCallbackPage.jsx';
 
+import ResetPasswordPage from '../features/user/ResetPasswordPage.jsx';
+
 const AppRoutes = () => {
   return (
     <Routes>
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+
       {/* 카카오 로그인 관련 */}
       <Route path="/oauth2/redirect" element={<OAuthKakaoCallbackPage />} />
       <Route path="/kakao/logout/callback" element={<OAuthKakaoLogoutCallbackPage />} />
@@ -29,6 +33,7 @@ const AppRoutes = () => {
         <Route path="/reservation/:id" element={<ReservationListPage />} />
         <Route path="/studios" element={<StudioListPage />} />
         <Route path="/studio/:id" element={<StudioDetailPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
 
         {/* 마이페이지 영역 */}
