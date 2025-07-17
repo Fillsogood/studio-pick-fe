@@ -3,12 +3,23 @@ import { login } from "../lib/authAPI";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 
-const LoginModal = ({ onClose, onLoginSuccess }) => { // onLoginSuccess 추가
+const LoginModal = ({ onClose, onLoginSuccess }) => {
+  // onLoginSuccess 추가
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+
+  // 카카오 로그인
+  const handleKakaoLogin = () => {
+    const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
+    const REDIRECT_URI = import.meta.env.VITE_KAKAO_REDIRECT_URI;
+
+    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
+
+    window.location.href = kakaoAuthUrl;
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -16,11 +27,12 @@ const LoginModal = ({ onClose, onLoginSuccess }) => { // onLoginSuccess 추가
       const response = await login(email, password);
       const { accessToken } = response.data;
 
-      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("loginType", "local"); 
 
       if (onLoginSuccess) onLoginSuccess(); // Header에 로그인 상태 전달
       onClose();
-      navigate('/');
+      navigate("/");
     } catch (err) {
       setError("이메일 또는 비밀번호가 올바르지 않습니다.");
     }
@@ -37,7 +49,11 @@ const LoginModal = ({ onClose, onLoginSuccess }) => { // onLoginSuccess 추가
         </button>
 
         <div className="text-center mb-6">
-          <img src={logo} alt="Studio Pick" className="mx-auto w-24 h-24 mb-2" />
+          <img
+            src={logo}
+            alt="Studio Pick"
+            className="mx-auto w-24 h-24 mb-2"
+          />
           <p className="text-sm font-semibold mt-1">환영합니다</p>
         </div>
 
@@ -80,7 +96,6 @@ const LoginModal = ({ onClose, onLoginSuccess }) => { // onLoginSuccess 추가
               className="text-lime-400 hover:underline"
             >
               비밀번호를 잊으셨나요?
-
             </a>
           </div>
 
@@ -110,12 +125,15 @@ const LoginModal = ({ onClose, onLoginSuccess }) => { // onLoginSuccess 추가
           <hr className="flex-grow border-gray-300" />
         </div>
 
-        <button className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-semibold py-2 rounded-md">
+        <button
+          onClick={handleKakaoLogin}
+          className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-semibold py-2 rounded-md"
+        >
           카카오로 계속하기
         </button>
 
         <div className="mt-6 text-sm text-center text-gray-500">
-          계정이 없으신가요?{' '}
+          계정이 없으신가요?{" "}
           <a href="/register" className="text-blue-500 hover:underline">
             회원가입
           </a>

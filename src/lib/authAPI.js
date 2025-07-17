@@ -18,8 +18,10 @@ export const login = (email, password) =>
 
 // 카카오 로그인
 export const kakaoLogin = (data) =>
-  axiosInstance.post('/api/auth/social/kakao', data);
+  axiosInstance.post('/api/auth/oauth/kakao', data);
 
 // 로그아웃
 export const logout = () =>
   axiosInstance.post('/api/auth/logout');
+
+
