@@ -26,8 +26,10 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    console.log("로그인 시도:", email, password, rememberMe);
     try {
-      const response = await login(email, password);
+      const response = await login(email, password, rememberMe);
+      console.log("응답:", response);
       const { accessToken } = response.data;
 
       localStorage.setItem("accessToken", accessToken);
@@ -37,6 +39,7 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
       onClose();
       navigate("/");
     } catch (err) {
+      console.error("로그인 실패:", err);
       setError("이메일 또는 비밀번호가 올바르지 않습니다.");
     }
   };
