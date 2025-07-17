@@ -53,7 +53,11 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
         </button>
 
         <div className="text-center mb-6">
-          <img src={logo} alt="Studio Pick" className="mx-auto w-24 h-24 mb-2" />
+          <img
+            src={logo}
+            alt="Studio Pick"
+            className="mx-auto w-24 h-24 mb-2"
+          />
           <p className="text-sm font-semibold mt-1">환영합니다</p>
         </div>
 

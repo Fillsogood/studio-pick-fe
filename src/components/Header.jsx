@@ -11,14 +11,12 @@ const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-  const flag = localStorage.getItem("isLoggedIn");
-  if (flag === "true") {
-    setIsLoggedIn(true);                 // 상태 반영
-    localStorage.removeItem("isLoggedIn"); // 플래그 1회성 처리
-  }
-}, []);
-
-
+    const flag = localStorage.getItem("isLoggedIn");
+    if (flag === "true") {
+      setIsLoggedIn(true); // 상태 반영
+      localStorage.removeItem("isLoggedIn"); // 플래그 1회성 처리
+    }
+  }, []);
 
   return (
     <>
