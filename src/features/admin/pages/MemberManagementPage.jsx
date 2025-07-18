@@ -524,7 +524,7 @@ const MemberManagementPage = () => {
       icon: <Activity className="w-5 h-5" />
     },
     { 
-      title: '클래스 사장', 
+      title: '공방 사장', 
       value: stats.classOwners || 0, 
       color: 'indigo',
       icon: <Calendar className="w-5 h-5" />

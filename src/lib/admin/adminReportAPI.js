@@ -1,17 +1,8 @@
 import axiosInstance from '../axiosInstance';
 
-/**
- * 관리자 신고 관리 API
- * 백엔드: ReportAdminController (/api/admin/reports)
- */
-
-const ADMIN_REPORT_API_BASE = '/apiadmin/reports';
+const ADMIN_REPORT_API_BASE = '/api/admin/reports';
 
 export const adminReportAPI = {
-  /**
-   * 신고 목록 조회 (검색/필터 포함)
-   * GET /api/admin/reports
-   */
   getReportList: async (
     reportedType = null,
     status = null,
@@ -39,16 +30,13 @@ export const adminReportAPI = {
       params.append('sortBy', sortBy);
       params.append('sortDirection', sortDirection);
 
-      const response = await axiosInstance.get(`/api${ADMIN_REPORT_API_BASE}?${params}`);
+      const response = await axiosInstance.get(`${ADMIN_REPORT_API_BASE}?${params}`);
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  /**
-   * 신고 상세 조회
-   */
   getReportDetail: async (reportId) => {
     try {
       const response = await axiosInstance.get(`${ADMIN_REPORT_API_BASE}/${reportId}`);
@@ -58,17 +46,12 @@ export const adminReportAPI = {
     }
   },
 
-  /**
-   * 신고 처리
-   */
   processReport: async (reportId, adminId, command) => {
     try {
-      const response = await axiosInstance.put(
+      const response = await axiosInstance.post(
         `${ADMIN_REPORT_API_BASE}/${reportId}/process`,
         command,
-        {
-          headers: { 'X-ADMIN-ID': adminId }
-        }
+        { params: { adminId } }
       );
       return response.data;
     } catch (error) {
@@ -76,17 +59,12 @@ export const adminReportAPI = {
     }
   },
 
-  /**
-   * 신고 일괄 처리
-   */
   processBatchReports: async (adminId, reportIds, command) => {
     try {
-      const response = await axiosInstance.put(
-        `${ADMIN_REPORT_API_BASE}/batch/process?reportIds=${reportIds.join(',')}`,
+      const response = await axiosInstance.post(
+        `${ADMIN_REPORT_API_BASE}/process-batch`,
         command,
-        {
-          headers: { 'X-ADMIN-ID': adminId }
-        }
+        { params: { reportIds: reportIds.join(','), adminId } }
       );
       return response.data;
     } catch (error) {
@@ -94,13 +72,11 @@ export const adminReportAPI = {
     }
   },
 
-  /**
-   * 신고 통계 조회
-   */
   getReportStats: async (startDate, endDate) => {
     try {
       const response = await axiosInstance.get(
-        `${ADMIN_REPORT_API_BASE}/stats?startDate=${startDate}&endDate=${endDate}`
+        `${ADMIN_REPORT_API_BASE}/stats`,
+        { params: { startDate, endDate } }
       );
       return response.data;
     } catch (error) {
@@ -108,14 +84,11 @@ export const adminReportAPI = {
     }
   },
 
-  /**
-   * 콘텐츠 신고 목록 조회
-   */
   getContentReports: async (type, contentId) => {
     try {
-      const response = await axiosInstance.get(
-        `${ADMIN_REPORT_API_BASE}/content/${type}/${contentId}`
-      );
+      const response = await axiosInstance.get(`${ADMIN_REPORT_API_BASE}/content`, {
+        params: { type, contentId }
+      });
       return response.data;
     } catch (error) {
       throw error;
@@ -133,7 +106,7 @@ export const adminReportAPI = {
 
   getPendingReportCount: async () => {
     try {
-      const response = await axiosInstance.get(`${ADMIN_REPORT_API_BASE}/pending/count`);
+      const response = await axiosInstance.get(`${ADMIN_REPORT_API_BASE}/pending-count`);
       return response.data;
     } catch (error) {
       throw error;
@@ -149,9 +122,6 @@ export const adminReportAPI = {
     }
   },
 
-  /**
-   * 상태별 목록 조회
-   */
   getPendingReports: async (page = 0, size = 20) => {
     return await adminReportAPI.getReportList(null, 'PENDING', null, null, null, null, null, page, size);
   },
@@ -164,9 +134,6 @@ export const adminReportAPI = {
     return await adminReportAPI.getReportList(null, 'REJECTED', null, null, null, null, null, page, size);
   },
 
-  /**
-   * 유형별 목록 조회
-   */
   getStudioReports: async (page = 0, size = 20) => {
     return await adminReportAPI.getReportList('STUDIO', null, null, null, null, null, null, page, size);
   },
@@ -183,9 +150,6 @@ export const adminReportAPI = {
     return await adminReportAPI.getReportList('USER', null, null, null, null, null, null, page, size);
   },
 
-  /**
-   * 단일 승인/거부
-   */
   approveReport: async (reportId, adminId, reason = '신고 승인') => {
     const command = { action: 'APPROVE', reason, hideContent: true };
     return await adminReportAPI.processReport(reportId, adminId, command);
@@ -196,9 +160,6 @@ export const adminReportAPI = {
     return await adminReportAPI.processReport(reportId, adminId, command);
   },
 
-  /**
-   * 일괄 승인/거부
-   */
   approveReports: async (reportIds, adminId, reason = '신고 일괄 승인') => {
     const command = { action: 'APPROVE', reason, hideContent: true };
     return await adminReportAPI.processBatchReports(adminId, reportIds, command);
@@ -209,9 +170,6 @@ export const adminReportAPI = {
     return await adminReportAPI.processBatchReports(adminId, reportIds, command);
   },
 
-  /**
-   * 기간별 통계 조회
-   */
   getTodayReportStats: async () => {
     const today = new Date().toISOString().split('T')[0];
     return await adminReportAPI.getReportStats(today, today);

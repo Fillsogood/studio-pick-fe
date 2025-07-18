@@ -44,6 +44,9 @@ const AppRoutes = () => {
           <Route path="notification" element={<NotificationSettingPage />} />
         </Route>
       </Route>
+        {/* 어드민 전용 라우트 */}
+      <Route path="/admin/login" element={<AdminLoginPage />} />
+      <Route path="/admin/*" element={<AdminApp />} />
     </Routes>
   );
 };

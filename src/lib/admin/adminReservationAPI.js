@@ -1,16 +1,8 @@
 import axiosInstance from '../axiosInstance';
 
-/**
- * 관리자 예약 관리 API
- * 백엔드: ReservationAdminController (/api/admin/reservations)
- */
-
 const ADMIN_RESERVATION_API_BASE = '/api/admin/reservations';
 
 export const adminReservationAPI = {
-  /**
-   * 전체 예약 목록 조회
-   */
   getAllReservations: async (
     page = 1,
     size = 10,
@@ -22,17 +14,9 @@ export const adminReservationAPI = {
     searchKeyword = null
   ) => {
     try {
-      const params = new URLSearchParams();
-      params.append('page', page);
-      if (size) params.append('size', size);
-      if (status) params.append('status', status);
-      if (startDate) params.append('startDate', startDate);
-      if (endDate) params.append('endDate', endDate);
-      if (userId) params.append('userId', userId);
-      if (studioId) params.append('studioId', studioId);
-      if (searchKeyword) params.append('searchKeyword', searchKeyword);
-
-      const response = await axiosInstance.get(`${ADMIN_RESERVATION_API_BASE}?${params}`);
+      const response = await axiosInstance.get(ADMIN_RESERVATION_API_BASE, {
+        params: { page, size, status, startDate, endDate, userId, studioId, searchKeyword }
+      });
       return response.data;
     } catch (error) {
       throw error;
@@ -71,14 +55,9 @@ export const adminReservationAPI = {
 
   getUserReservations: async (userId, page = 1, size = 10, status = null) => {
     try {
-      const params = new URLSearchParams();
-      params.append('page', page);
-      if (size) params.append('size', size);
-      if (status) params.append('status', status);
-
-      const response = await axiosInstance.get(
-        `${ADMIN_RESERVATION_API_BASE}/users/${userId}?${params}`
-      );
+      const response = await axiosInstance.get(`${ADMIN_RESERVATION_API_BASE}/users/${userId}`, {
+        params: { page, size, status }
+      });
       return response.data;
     } catch (error) {
       throw error;
@@ -87,14 +66,9 @@ export const adminReservationAPI = {
 
   getStudioReservations: async (studioId, page = 1, size = 10, status = null) => {
     try {
-      const params = new URLSearchParams();
-      params.append('page', page);
-      if (size) params.append('size', size);
-      if (status) params.append('status', status);
-
-      const response = await axiosInstance.get(
-        `${ADMIN_RESERVATION_API_BASE}/studios/${studioId}?${params}`
-      );
+      const response = await axiosInstance.get(`${ADMIN_RESERVATION_API_BASE}/studios/${studioId}`, {
+        params: { page, size, status }
+      });
       return response.data;
     } catch (error) {
       throw error;
@@ -103,12 +77,9 @@ export const adminReservationAPI = {
 
   getTodayReservations: async (page = 1, size = 10, status = null) => {
     try {
-      const params = new URLSearchParams();
-      params.append('page', page);
-      if (size) params.append('size', size);
-      if (status) params.append('status', status);
-
-      const response = await axiosInstance.get(`${ADMIN_RESERVATION_API_BASE}/today?${params}`);
+      const response = await axiosInstance.get(`${ADMIN_RESERVATION_API_BASE}/today`, {
+        params: { page, size, status }
+      });
       return response.data;
     } catch (error) {
       throw error;
@@ -117,12 +88,9 @@ export const adminReservationAPI = {
 
   getThisWeekReservations: async (page = 1, size = 10, status = null) => {
     try {
-      const params = new URLSearchParams();
-      params.append('page', page);
-      if (size) params.append('size', size);
-      if (status) params.append('status', status);
-
-      const response = await axiosInstance.get(`${ADMIN_RESERVATION_API_BASE}/this-week?${params}`);
+      const response = await axiosInstance.get(`${ADMIN_RESERVATION_API_BASE}/this-week`, {
+        params: { page, size, status }
+      });
       return response.data;
     } catch (error) {
       throw error;

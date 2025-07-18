@@ -2,22 +2,124 @@ import axiosInstance from '../axiosInstance';
 
 /**
  * 관리자 대시보드 API
- * 백엔드: DashboardAdminController (/api/admin)
+ * 백엔드: AdminDashboardController (/api/admin/dashboard)
  */
 
-const ADMIN_DASHBOARD_API_BASE = '/api/admin';
+const ADMIN_DASHBOARD_API_BASE = '/api/admin/dashboard';
 
 export const adminDashboardAPI = {
+  /**
+   * 메인 대시보드 조회
+   * GET /api/admin/dashboard
+   */
+  getDashboardData: async () => {
+    try {
+      const response = await axiosInstance.get(ADMIN_DASHBOARD_API_BASE);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message
+      };
+    } catch (error) {
+      console.error('getDashboardData 에러:', error);
+      return {
+        success: false,
+        data: null,
+        message: error.response?.data?.message || '대시보드 데이터를 불러오는데 실패했습니다.'
+      };
+    }
+  },
+
+  /**
+   * 기간별 통계 조회
+   * GET /api/admin/dashboard/stats
+   */
+  getDashboardStats: async (startDate, endDate) => {
+    try {
+      const response = await axiosInstance.get(`${ADMIN_DASHBOARD_API_BASE}/stats`, {
+        params: { startDate, endDate }
+      });
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message
+      };
+    } catch (error) {
+      console.error('getDashboardStats 에러:', error);
+      return {
+        success: false,
+        data: null,
+        message: error.response?.data?.message || '기간별 통계를 불러오는데 실패했습니다.'
+      };
+    }
+  },
+
+  /**
+   * 실시간 통계 조회
+   * GET /api/admin/dashboard/realtime
+   */
+  getRealTimeStats: async () => {
+    try {
+      const response = await axiosInstance.get(`${ADMIN_DASHBOARD_API_BASE}/realtime`);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message
+      };
+    } catch (error) {
+      console.error('getRealTimeStats 에러:', error);
+      return {
+        success: false,
+        data: null,
+        message: error.response?.data?.message || '실시간 통계를 불러오는데 실패했습니다.'
+      };
+    }
+  },
+
+  /**
+   * KPI 요약 조회
+   * GET /api/admin/dashboard/kpi
+   */
+  getKpiSummary: async () => {
+    try {
+      const response = await axiosInstance.get(`${ADMIN_DASHBOARD_API_BASE}/kpi`);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message
+      };
+    } catch (error) {
+      console.error('getKpiSummary 에러:', error);
+      return {
+        success: false,
+        data: null,
+        message: error.response?.data?.message || 'KPI 요약을 불러오는데 실패했습니다.'
+      };
+    }
+  },
+
+
+  // === 추가 통계 API (다른 컨트롤러에서 가져오는 통계) ===
+  
   /**
    * 사용자 통계 조회
    * GET /api/admin/users/stats
    */
   getUserStats: async () => {
     try {
-      const response = await axiosInstance.get(`${ADMIN_DASHBOARD_API_BASE}/users/stats`);
-      return response.data;
+      const response = await axiosInstance.get('/api/admin/users/stats');
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message
+      };
     } catch (error) {
-      throw error;
+      console.error('getUserStats 에러:', error);
+      return {
+        success: false,
+        data: null,
+        message: error.response?.data?.message || '사용자 통계를 불러오는데 실패했습니다.'
+      };
     }
   },
 
@@ -27,10 +129,19 @@ export const adminDashboardAPI = {
    */
   getStudioStats: async () => {
     try {
-      const response = await axiosInstance.get(`${ADMIN_DASHBOARD_API_BASE}/studios/stats`);
-      return response.data;
+      const response = await axiosInstance.get('/api/admin/studios/stats');
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message
+      };
     } catch (error) {
-      throw error;
+      console.error('getStudioStats 에러:', error);
+      return {
+        success: false,
+        data: null,
+        message: error.response?.data?.message || '스튜디오 통계를 불러오는데 실패했습니다.'
+      };
     }
   },
 
@@ -40,10 +151,19 @@ export const adminDashboardAPI = {
    */
   getReservationStats: async () => {
     try {
-      const response = await axiosInstance.get(`${ADMIN_DASHBOARD_API_BASE}/reservations/stats`);
-      return response.data;
+      const response = await axiosInstance.get('/api/admin/reservations/stats');
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message
+      };
     } catch (error) {
-      throw error;
+      console.error('getReservationStats 에러:', error);
+      return {
+        success: false,
+        data: null,
+        message: error.response?.data?.message || '예약 통계를 불러오는데 실패했습니다.'
+      };
     }
   },
 
@@ -51,118 +171,21 @@ export const adminDashboardAPI = {
    * 매출 통계 조회
    * GET /api/admin/sales/stats
    */
-  getSalesStats: async () => {
+  getSalesStats: async (params = {}) => {
     try {
-      const response = await axiosInstance.get(`${ADMIN_DASHBOARD_API_BASE}/sales/stats`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  /**
-   * 매출 대시보드 통합 조회
-   * GET /api/admin/sales/dashboard
-   */
-  getSalesDashboard: async () => {
-    try {
-      const response = await axiosInstance.get(`${ADMIN_DASHBOARD_API_BASE}/sales/dashboard`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  /**
-   * 오늘 예약 목록 조회
-   * GET /api/admin/reservations/today?page=&size=
-   */
-  getTodayReservations: async (page = 1, size = 10) => {
-    try {
-      const response = await axiosInstance.get(
-        `${ADMIN_DASHBOARD_API_BASE}/reservations/today?page=${page}&size=${size}`
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  /**
-   * 이번 주 예약 목록 조회
-   * GET /api/admin/reservations/this-week?page=&size=
-   */
-  getThisWeekReservations: async (page = 1, size = 10) => {
-    try {
-      const response = await axiosInstance.get(
-        `${ADMIN_DASHBOARD_API_BASE}/reservations/this-week?page=${page}&size=${size}`
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  /**
-   * 매출 트렌드 조회
-   * GET /api/admin/sales/trend?startDate=&endDate=&period=
-   */
-  getSalesTrend: async (startDate, endDate, period = 'daily') => {
-    try {
-      const response = await axiosInstance.get(
-        `${ADMIN_DASHBOARD_API_BASE}/sales/trend?startDate=${startDate}&endDate=${endDate}&period=${period}`
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  /**
-   * 이번 달 매출 조회
-   * GET /api/admin/sales/this-month
-   */
-  getThisMonthSales: async () => {
-    try {
-      const response = await axiosInstance.get(`${ADMIN_DASHBOARD_API_BASE}/sales/this-month`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  /**
-   * 대시보드 통합 데이터 조회
-   * 여러 통계 데이터를 병렬로 호출 후 통합 반환
-   */
-  getDashboardData: async () => {
-    try {
-      const [
-        userStats,
-        studioStats,
-        reservationStats,
-        salesStats,
-        todayReservations,
-        salesTrend
-      ] = await Promise.all([
-        adminDashboardAPI.getUserStats(),
-        adminDashboardAPI.getStudioStats(),
-        adminDashboardAPI.getReservationStats(),
-        adminDashboardAPI.getSalesStats(),
-        adminDashboardAPI.getTodayReservations(1, 5),
-        adminDashboardAPI.getThisMonthSales()
-      ]);
-
+      const response = await axiosInstance.get('/api/admin/sales/stats', { params });
       return {
-        userStats: userStats.data,
-        studioStats: studioStats.data,
-        reservationStats: reservationStats.data,
-        salesStats: salesStats.data,
-        todayReservations: todayReservations.data,
-        salesTrend: salesTrend.data
+        success: true,
+        data: response.data.data,
+        message: response.data.message
       };
     } catch (error) {
-      throw error;
+      console.error('getSalesStats 에러:', error);
+      return {
+        success: false,
+        data: null,
+        message: error.response?.data?.message || '매출 통계를 불러오는데 실패했습니다.'
+      };
     }
   }
 };
