@@ -66,7 +66,113 @@ const ReservationListPage = () => {
     };
 
     fetchReservations();
-  }, [currentPage]); // activeFilter 의존성 제거
+  }, [isLoggedIn, currentPage, activeFilter]);
+
+  // 목업 데이터 - 스튜디오 예약 (실제 API 스펙에 맞춤)
+  const mockStudioReservations = [
+    {
+      id: 1,
+      studioName: "스튜디오 A",
+      date: "2024-01-20",
+      startTime: "14:00",
+      endTime: "16:00",
+      status: RESERVATION_STATUS.CONFIRMED,
+      totalAmount: 50000,
+    },
+    {
+      id: 2,
+      studioName: "스튜디오 B",
+      date: "2024-01-25",
+      startTime: "10:00",
+      endTime: "12:00",
+      status: RESERVATION_STATUS.PENDING,
+      totalAmount: 80000,
+    },
+    {
+      id: 3,
+      studioName: "스튜디오 C",
+      date: "2024-01-15",
+      startTime: "18:00",
+      endTime: "20:00",
+      status: RESERVATION_STATUS.COMPLETED,
+      totalAmount: 120000,
+    },
+    {
+      id: 4,
+      studioName: "스튜디오 D",
+      date: "2024-01-10",
+      startTime: "09:00",
+      endTime: "11:00",
+      status: RESERVATION_STATUS.CANCELLED,
+      totalAmount: 90000,
+    },
+    {
+      id: 5,
+      studioName: "스튜디오 E",
+      date: "2024-01-30",
+      startTime: "15:00",
+      endTime: "17:00",
+      status: RESERVATION_STATUS.CANCEL_REQUESTED,
+      totalAmount: 60000,
+    },
+    {
+      id: 6,
+      studioName: "스튜디오 F",
+      date: "2024-01-05",
+      startTime: "10:00",
+      endTime: "12:00",
+      status: RESERVATION_STATUS.REFUNDED,
+      totalAmount: 70000,
+    },
+  ];
+
+  // 목업 데이터 - 클래스 예약 (실제 API 스펙에 맞춤)
+  const mockClassReservations = [
+    {
+      id: 1,
+      classTitle: "포토그래피 기초 마스터 클래스",
+      instructor: "김민준 사진작가",
+      date: "2024-01-15",
+      startTime: { hour: 14, minute: 0, second: 0, nano: 0 },
+      studioName: "스튜디오 A",
+      participants: 1,
+      amount: 55000,
+      status: RESERVATION_STATUS.CONFIRMED,
+    },
+    {
+      id: 2,
+      classTitle: "제품 사진 촬영 워크샵",
+      instructor: "이지은 상업 사진작가",
+      date: "2024-01-10",
+      startTime: { hour: 10, minute: 0, second: 0, nano: 0 },
+      studioName: "스튜디오 B",
+      participants: 1,
+      amount: 75000,
+      status: RESERVATION_STATUS.PENDING,
+    },
+    {
+      id: 3,
+      classTitle: "인물 사진 포트레이트 클래스",
+      instructor: "박서연 포트레이트 전문가",
+      date: "2024-01-05",
+      startTime: { hour: 13, minute: 0, second: 0, nano: 0 },
+      studioName: "스튜디오 C",
+      participants: 1,
+      amount: 120000,
+      status: RESERVATION_STATUS.COMPLETED,
+    },
+    {
+      id: 4,
+      classTitle: "드론 촬영 마스터 클래스",
+      instructor: "최준호 드론 전문가",
+      date: "2024-01-08",
+      startTime: { hour: 16, minute: 0, second: 0, nano: 0 },
+      studioName: "스튜디오 D",
+      participants: 1,
+      amount: 95000,
+      status: RESERVATION_STATUS.CANCEL_REQUESTED,
+    },
+  ];
 
   // 필터링된 예약 목록
   const getFilteredReservations = () => {

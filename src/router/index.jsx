@@ -35,7 +35,6 @@ const AppRoutes = () => {
         <Route path="/reservation/:id" element={<ReservationListPage />} />
         <Route path="/studios" element={<StudioListPage />} />
         <Route path="/studio/:id" element={<StudioDetailPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
 
         {/* 마이페이지 영역 */}
