@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { login } from "../lib/authAPI";
+import { getMyProfile } from "../lib/userAPI";
 
 const LoginModal = ({ onClose, onLoginSuccess }) => {
   const navigate = useNavigate();
@@ -26,20 +27,23 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("로그인 시도:", email, password, rememberMe);
     try {
       const response = await login(email, password, rememberMe);
-      console.log("응답:", response);
-      const { accessToken } = response.data;
 
-      localStorage.setItem("accessToken", accessToken);
+      // 로그인 성공 후 → 사용자 정보 요청
+      const profileRes = await getMyProfile();
+      const nickname = profileRes.data.data.nickname;
+
+      // 저장
+      localStorage.setItem("accessToken", response.data.accessToken);
       localStorage.setItem("loginType", "local");
+      localStorage.setItem("nickname", nickname); // 여기서 정확히 저장
 
-      if (onLoginSuccess) onLoginSuccess(); // Header 쪽 전달
+      if (onLoginSuccess) onLoginSuccess(); // Header 닉네임 갱신
       onClose();
       navigate("/");
     } catch (err) {
-      console.error("로그인 실패:", err);
+      console.error(err);
       setError("이메일 또는 비밀번호가 올바르지 않습니다.");
     }
   };

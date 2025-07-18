@@ -38,3 +38,11 @@ export const resetPasswordByToken = (token, newPassword) => {
     newPassword,
   });
 };
+
+// 회원정보 수정전 비밀번호 인증
+export const verifyPassword = async (password) =>
+  axiosInstance.post("/api/users/verify-password", { password });
+
+export const updateEmail = (email) => {
+  return axiosInstance.put("/api/users/email", { email });
+};

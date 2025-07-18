@@ -9,12 +9,16 @@ const Header = () => {
 
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [nickname, setNickname] = useState("");
 
   useEffect(() => {
     const flag = localStorage.getItem("isLoggedIn");
     if (flag === "true") {
-      setIsLoggedIn(true); // 상태 반영
-      localStorage.removeItem("isLoggedIn"); // 플래그 1회성 처리
+      setIsLoggedIn(true);
+      localStorage.removeItem("isLoggedIn");
+
+      const nick = localStorage.getItem("nickname");
+      if (nick) setNickname(nick);
     }
   }, []);
 
@@ -44,7 +48,7 @@ const Header = () => {
               className="text-sm font-medium hover:underline"
               onClick={() => navigate("/account/profile")}
             >
-              게스트
+              {nickname || "게스트"}
             </span>
           ) : (
             <span
@@ -61,7 +65,11 @@ const Header = () => {
       {isLoginOpen && (
         <LoginModal
           onClose={() => setIsLoginOpen(false)}
-          onLoginSuccess={() => setIsLoggedIn(true)}
+          onLoginSuccess={() => {
+            setIsLoggedIn(true);
+            const nick = localStorage.getItem("nickname");
+            if (nick) setNickname(nick);
+          }}
         />
       )}
     </>
