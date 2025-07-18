@@ -29,7 +29,7 @@ export default function StudioCard({ studio, onFavoriteClick, isFavorite }) {
                 <p className="text-sm text-gray-500">{studio.location}</p>
 
                 <div className="flex justify-between items-center mt-2">
-              <span className="text-sm font-bold text-lime-300">
+              <span className="text-sm font-bold text-black">
                 {studio.price.toLocaleString()}원
               </span>
                     <span className="text-sm text-yellow-500 flex items-center">⭐ {studio.rating}</span>

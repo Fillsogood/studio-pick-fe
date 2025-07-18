@@ -27,8 +27,15 @@ export default function KakaoMap({ location }) {
                 }
 
                 // 주소 전처리
-                const trimmed = location.replace(/\s[0-9]+(층|호|동)/g, '');
-                geocoder.locationSearch(trimmed, (result, status) => {
+                let trimmed;
+                if (typeof location === 'string') {
+                    trimmed = location.replace(/\s[0-9]+(층|호|동)\b/g, '');
+                } else {
+                    console.warn("❗ location prop이 유효한 문자열이 아닙니다:", location);
+                    markerRef.current?.setMap(null); // 유효하지 않은 location이므로 마커 제거
+                    return; // 주소 검색 로직 건너뛰기
+                }
+                    geocoder.addressSearch(trimmed, (result, status) => {
                     console.log("검색 주소:", trimmed);
                     console.log("결과:", result);
                     console.log("상태:", status);
