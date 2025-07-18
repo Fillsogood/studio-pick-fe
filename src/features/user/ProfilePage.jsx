@@ -67,6 +67,7 @@ const ProfilePage = () => {
         phone: form.phone,
         nickname: form.nickname,
       });
+      localStorage.setItem("nickname", form.nickname);
       alert("회원 정보가 수정되었습니다.");
     } catch (e) {
       console.error(e);

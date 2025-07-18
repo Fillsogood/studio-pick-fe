@@ -12,13 +12,15 @@ const Header = () => {
   const [nickname, setNickname] = useState("");
 
   useEffect(() => {
-    const flag = localStorage.getItem("isLoggedIn");
-    if (flag === "true") {
-      setIsLoggedIn(true);
-      localStorage.removeItem("isLoggedIn");
+    const token = localStorage.getItem("accessToken");
+    const nickname = localStorage.getItem("nickname");
 
-      const nick = localStorage.getItem("nickname");
-      if (nick) setNickname(nick);
+    if (token && nickname) {
+      setIsLoggedIn(true);
+      setNickname(nickname);
+    } else {
+      setIsLoggedIn(false);
+      setNickname("");
     }
   }, []);
 
