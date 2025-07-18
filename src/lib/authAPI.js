@@ -13,13 +13,15 @@ export const validatePhone = (phone) =>
   axiosInstance.post('/api/auth/validate/phone', { phone });
 
 // 일반 로그인
-export const login = (email, password) =>
-  axiosInstance.post('/api/auth/login', { email, password });
+export const login = (email, password, rememberMe) =>
+  axiosInstance.post('/api/auth/login', { email, password, rememberMe });
 
 // 카카오 로그인
 export const kakaoLogin = (data) =>
-  axiosInstance.post('/api/auth/social/kakao', data);
+  axiosInstance.post('/api/auth/oauth/kakao', data);
 
 // 로그아웃
 export const logout = () =>
   axiosInstance.post('/api/auth/logout');
+
+

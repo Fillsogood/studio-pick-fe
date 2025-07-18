@@ -1,27 +1,49 @@
 import { useState } from "react";
-import { login } from "../lib/authAPI";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import logo from "../assets/logo.png";
+import { login } from "../lib/authAPI";
+import { getMyProfile } from "../lib/userAPI";
 
-const LoginModal = ({ onClose, onLoginSuccess }) => { // onLoginSuccess 추가
+const LoginModal = ({ onClose, onLoginSuccess }) => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
 
+  // 카카오 로그인
+  const handleKakaoLogin = () => {
+    const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
+    const REDIRECT_URI = import.meta.env.VITE_KAKAO_REDIRECT_URI;
+
+    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
+    window.location.href = kakaoAuthUrl;
+  };
+
+  const handleForgotPassword = () => {
+    onClose(); // 모달 닫기
+    navigate("/forgot-password"); // 라우팅
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await login(email, password);
-      const { accessToken } = response.data;
+      const response = await login(email, password, rememberMe);
 
-      localStorage.setItem('accessToken', accessToken);
+      // 로그인 성공 후 → 사용자 정보 요청
+      const profileRes = await getMyProfile();
+      const nickname = profileRes.data.data.nickname;
 
-      if (onLoginSuccess) onLoginSuccess(); // Header에 로그인 상태 전달
+      // 저장
+      localStorage.setItem("accessToken", response.data.accessToken);
+      localStorage.setItem("loginType", "local");
+      localStorage.setItem("nickname", nickname); // 여기서 정확히 저장
+
+      if (onLoginSuccess) onLoginSuccess(); // Header 닉네임 갱신
       onClose();
-      navigate('/');
+      navigate("/");
     } catch (err) {
+      console.error(err);
       setError("이메일 또는 비밀번호가 올바르지 않습니다.");
     }
   };
@@ -29,6 +51,7 @@ const LoginModal = ({ onClose, onLoginSuccess }) => { // onLoginSuccess 추가
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
       <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-lg relative">
+        {/* 닫기 버튼 */}
         <button
           onClick={onClose}
           className="absolute top-3 right-4 text-xl text-gray-400 hover:text-black"
@@ -37,10 +60,15 @@ const LoginModal = ({ onClose, onLoginSuccess }) => { // onLoginSuccess 추가
         </button>
 
         <div className="text-center mb-6">
-          <img src={logo} alt="Studio Pick" className="mx-auto w-24 h-24 mb-2" />
+          <img
+            src={logo}
+            alt="Studio Pick"
+            className="mx-auto w-24 h-24 mb-2"
+          />
           <p className="text-sm font-semibold mt-1">환영합니다</p>
         </div>
 
+        {/* 로그인 폼 */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-sm text-gray-700 mb-1">이메일</label>
@@ -75,13 +103,14 @@ const LoginModal = ({ onClose, onLoginSuccess }) => { // onLoginSuccess 추가
               />
               로그인 상태 유지
             </label>
-            <a
-              href="/forgot-password"
+
+            <button
+              type="button"
+              onClick={handleForgotPassword}
               className="text-lime-400 hover:underline"
             >
               비밀번호를 잊으셨나요?
-
-            </a>
+            </button>
           </div>
 
           {error && <p className="text-sm text-red-500">{error}</p>}
@@ -94,7 +123,9 @@ const LoginModal = ({ onClose, onLoginSuccess }) => { // onLoginSuccess 추가
           </button>
         </form>
 
+        {/* 회원가입 버튼 */}
         <button
+          type="button"
           onClick={() => {
             onClose();
             navigate("/register");
@@ -110,15 +141,27 @@ const LoginModal = ({ onClose, onLoginSuccess }) => { // onLoginSuccess 추가
           <hr className="flex-grow border-gray-300" />
         </div>
 
-        <button className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-semibold py-2 rounded-md">
+        {/* 카카오 로그인 */}
+        <button
+          type="button"
+          onClick={handleKakaoLogin}
+          className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-semibold py-2 rounded-md"
+        >
           카카오로 계속하기
         </button>
 
         <div className="mt-6 text-sm text-center text-gray-500">
-          계정이 없으신가요?{' '}
-          <a href="/register" className="text-blue-500 hover:underline">
+          계정이 없으신가요?{" "}
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              navigate("/register");
+            }}
+            className="text-blue-500 hover:underline"
+          >
             회원가입
-          </a>
+          </button>
         </div>
       </div>
     </div>

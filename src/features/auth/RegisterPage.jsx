@@ -181,13 +181,6 @@ const RegisterPage = () => {
             회원가입
           </button>
         </form>
-
-        <p className="text-center mt-4 text-sm text-gray-500">
-          이미 계정이 있으신가요?{" "}
-          <a href="/login" className="text-blue-500 hover:underline">
-            로그인
-          </a>
-        </p>
       </div>
     </div>
   );

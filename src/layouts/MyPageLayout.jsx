@@ -1,8 +1,25 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { logout } from "../lib/authAPI";
+import { getMyProfile } from "../lib/userAPI";
 
 const MyPageLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [userInfo, setUserInfo] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await getMyProfile();
+        setUserInfo(res.data.data);
+      } catch (e) {
+        console.error("프로필 조회 실패", e);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   const menus = [
     { label: "알림 설정", path: "/account/notification" },
@@ -10,22 +27,30 @@ const MyPageLayout = () => {
   ];
 
   const handleLogout = async () => {
-  try {
-    await logout();
-  } catch (e) {
-    console.error("로그아웃 실패:", e);
-  } finally {
-    localStorage.removeItem("accessToken");
+    const loginType = localStorage.getItem("loginType"); // "kakao" or "local"
 
-    // ✅ 1) 홈으로 이동 후
-    navigate("/");
+    if (loginType === "kakao") {
+      // 카카오 계정 로그아웃까지
+      const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
+      const LOGOUT_REDIRECT_URI = import.meta.env
+        .VITE_KAKAO_LOGOUT_REDIRECT_URI;
 
-    // ✅ 2) 조금 delay 후 새로고침
-    setTimeout(() => {
-      window.location.reload(); // 🔁 여기서 확실히 리렌더링
-    }, 100);
-  }
-};
+      const kakaoLogoutUrl = `https://kauth.kakao.com/oauth/logout?client_id=${REST_API_KEY}&logout_redirect_uri=${LOGOUT_REDIRECT_URI}`;
+      window.location.href = kakaoLogoutUrl;
+    } else {
+      // 일반 로그인: 서버 로그아웃만 처리
+      try {
+        await logout(); // 서버에서 쿠키 삭제
+      } catch (e) {
+        console.error("로그아웃 실패:", e);
+      } finally {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("loginType"); // optional
+        navigate("/");
+        setTimeout(() => window.location.reload(), 100);
+      }
+    }
+  };
 
   return (
     <div className="flex bg-gray-50">
@@ -36,8 +61,12 @@ const MyPageLayout = () => {
           <div className="flex items-center mb-8">
             <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
             <div>
-              <div className="text-sm font-semibold">Leo0723</div>
-              <div className="text-xs text-gray-500">게스트</div>
+              <div className="text-sm font-semibold">
+                {userInfo?.nickname || "이름없음"}
+              </div>
+              <div className="text-xs text-gray-500">
+                {userInfo?.isStudioOwner ? "호스트" : "게스트"}
+              </div>
             </div>
           </div>
 
@@ -61,7 +90,7 @@ const MyPageLayout = () => {
         </div>
 
         {/* 하단 - 고객센터 / 로그아웃 */}
-        <div className="px-6 py-4 border-t text-xs text-gray-400 flex justify-between">
+        <div className="px-6 py-4 border-t text-xs text-black-500 flex justify-between">
           <span className="cursor-pointer hover:underline">고객센터</span>
           <span
             className="cursor-pointer hover:underline"
