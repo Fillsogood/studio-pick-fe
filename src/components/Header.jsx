@@ -22,7 +22,7 @@ const Header = () => {
       setIsLoggedIn(false);
       setNickname("");
     }
-  }, []);
+  }, [location.pathname]);
 
   return (
     <>

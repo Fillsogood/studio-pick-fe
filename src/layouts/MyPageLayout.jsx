@@ -15,6 +15,13 @@ const MyPageLayout = () => {
         setUserInfo(res.data.data);
       } catch (e) {
         console.error("프로필 조회 실패", e);
+
+          // ✅ 세션 만료 시 강제 로그아웃 처리
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("nickname");
+      localStorage.removeItem("loginType");
+      navigate("/");
+      window.location.reload(); // Header에 있는 로그인 상태도 초기화됨
       }
     };
 
