@@ -7,7 +7,9 @@ export const setupInterceptors = () => {
       const originalRequest = error.config;
 
       const ignoredPaths = ["/auth/login", "/auth/refresh", "/auth/signup"];
-      const isIgnored = ignoredPaths.some(path => originalRequest.url.includes(path));
+      const isIgnored = ignoredPaths.some((path) =>
+        originalRequest.url.includes(path)
+      );
 
       if (
         error.response?.status === 401 &&
@@ -19,7 +21,13 @@ export const setupInterceptors = () => {
           await axiosInstance.post("/auth/refresh");
           return axiosInstance(originalRequest);
         } catch (refreshError) {
-          window.location.href = "/";
+          // 여기 수정
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("nickname");
+          localStorage.removeItem("loginType");
+          sessionStorage.removeItem("isLoggedIn");
+
+          // 강제 리다이렉트 제거
           return Promise.reject(refreshError);
         }
       }
