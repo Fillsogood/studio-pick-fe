@@ -4,6 +4,7 @@ import {
   updateMyProfile,
   verifyPassword,
   updateEmail,
+  updatePassword,
 } from "../../lib/userAPI";
 
 const ProfilePage = () => {
@@ -21,6 +22,17 @@ const ProfilePage = () => {
 
   const [emailChanged, setEmailChanged] = useState(false);
   const [isEmailValid, setIsEmailValid] = useState(false);
+
+  // 🔒 비밀번호 변경용 상태
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
 
   const handleVerify = async () => {
     const res = await verifyPassword(password);
@@ -86,6 +98,23 @@ const ProfilePage = () => {
     }
   };
 
+  const handlePasswordChange = async () => {
+    try {
+      await updatePassword({
+        currentPassword,
+        newPassword,
+      });
+      alert("비밀번호가 변경되었습니다.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setShowPasswordChange(false);
+    } catch (e) {
+      console.error("❌ 비밀번호 변경 실패:", e.response?.data || e.message);
+      alert("비밀번호 변경 실패");
+    }
+  };
+
   return (
     <div>
       {!verified ? (
@@ -124,9 +153,7 @@ const ProfilePage = () => {
 
               <div className="space-y-5">
                 <div>
-                  <label className="text-sm text-gray-500 block mb-1">
-                    이름
-                  </label>
+                  <label className="text-sm text-gray-500 block mb-1">이름</label>
                   <input
                     type="text"
                     name="name"
@@ -137,9 +164,7 @@ const ProfilePage = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500 block mb-1">
-                    전화번호
-                  </label>
+                  <label className="text-sm text-gray-500 block mb-1">전화번호</label>
                   <input
                     type="text"
                     name="phone"
@@ -150,9 +175,7 @@ const ProfilePage = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500 block mb-1">
-                    닉네임
-                  </label>
+                  <label className="text-sm text-gray-500 block mb-1">닉네임</label>
                   <input
                     type="text"
                     name="nickname"
@@ -177,10 +200,9 @@ const ProfilePage = () => {
             <div className="flex-1 pl-10">
               <h3 className="text-base font-semibold mb-4">계정 정보</h3>
 
-              <div>
-                <label className="text-sm text-gray-500 block mb-1">
-                  이메일
-                </label>
+              {/* 이메일 변경 */}
+              <div className="mb-6">
+                <label className="text-sm text-gray-500 block mb-1">이메일</label>
                 <div className="flex items-center gap-2">
                   <input
                     name="email"
@@ -201,6 +223,118 @@ const ProfilePage = () => {
                     변경하기
                   </button>
                 </div>
+              </div>
+
+              {/* 비밀번호 변경 */}
+              <div className="mt-2">
+                {!showPasswordChange ? (
+                  <button
+                    onClick={() => setShowPasswordChange(true)}
+                    className="text-sm text-blue-500 font-medium"
+                  >
+                    비밀번호 변경 &gt;
+                  </button>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm text-gray-500 mb-1">
+                        현재 비밀번호
+                      </label>
+                      <input
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        className="w-full border px-4 py-2 rounded"
+                        placeholder="현재 비밀번호"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-500 mb-1">
+                        새 비밀번호
+                      </label>
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setNewPassword(value);
+                          if (!passwordRegex.test(value)) {
+                            setPasswordError(
+                              "비밀번호 형식을 확인해주세요. (8~20자, 대소문자/숫자/특수문자 포함)"
+                            );
+                          } else {
+                            setPasswordError("");
+                          }
+
+                          if (confirmPassword && confirmPassword !== value) {
+                            setConfirmPasswordError("비밀번호가 일치하지 않습니다.");
+                          } else {
+                            setConfirmPasswordError("");
+                          }
+                        }}
+                        className="w-full border px-4 py-2 rounded"
+                        placeholder="새 비밀번호"
+                      />
+                      {passwordError && (
+                        <p className="text-sm text-red-500 mt-1">{passwordError}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-500 mb-1">
+                        새 비밀번호 확인
+                      </label>
+                      <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setConfirmPassword(value);
+                          if (newPassword && newPassword !== value) {
+                            setConfirmPasswordError("비밀번호가 일치하지 않습니다.");
+                          } else {
+                            setConfirmPasswordError("");
+                          }
+                        }}
+                        className="w-full border px-4 py-2 rounded"
+                        placeholder="비밀번호 재입력"
+                      />
+                      {confirmPasswordError && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {confirmPasswordError}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setShowPasswordChange(false)}
+                        className="px-4 py-2 border rounded"
+                      >
+                        이전
+                      </button>
+                      <button
+                        onClick={handlePasswordChange}
+                        disabled={
+                          !currentPassword ||
+                          !newPassword ||
+                          !confirmPassword ||
+                          newPassword !== confirmPassword ||
+                          !passwordRegex.test(newPassword)
+                        }
+                        className={`px-4 py-2 rounded ${
+                          currentPassword &&
+                          newPassword &&
+                          confirmPassword &&
+                          newPassword === confirmPassword &&
+                          passwordRegex.test(newPassword)
+                            ? "bg-lime-300 text-black"
+                            : "bg-gray-200 text-gray-400"
+                        }`}
+                      >
+                        변경하기
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
