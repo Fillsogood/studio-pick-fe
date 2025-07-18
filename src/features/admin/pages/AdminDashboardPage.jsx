@@ -4,15 +4,14 @@ import {
   Building, 
   Calendar, 
   DollarSign, 
-  TrendingUp,
-  AlertTriangle,
-  RefreshCw
+  AlertTriangle, 
+  RefreshCw 
 } from 'lucide-react';
 import { StatCard, SimpleBarChart, SimplePieChart, Table } from '../components/common/DataComponents';
 import { Button } from '../components/common';
-import userAPI from '../../../lib/admin/userAPI';
-import studioAPI from '../../../lib/admin/studioAPI';
-import reservationAPI from '../../../lib/admin/reservationAPI';
+import userAPI from '../../../lib/admin/adminUserAPI';
+import studioAPI from '../../../lib/admin/adminStudioAPI';
+import reservationAPI from '../../../lib/admin/adminReservationAPI';
 import { formatCurrency, formatDateTime, getStatusBadgeColor, getStatusText } from '../../../lib/admin';
 
 const AdminDashboardPage = () => {
@@ -29,7 +28,7 @@ const AdminDashboardPage = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const [userStats, studioStats, reservationStats, todayReservations] = await Promise.all([
         userAPI.getUserStats(),
         studioAPI.getStudioStats(),
@@ -59,61 +58,34 @@ const AdminDashboardPage = () => {
     fetchDashboardData();
   };
 
-  // 로딩 상태
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
-      </div>
-    );
-  }
-
-  // 에러 상태
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-96">
-        <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
-        <p className="text-red-600 mb-4">{error}</p>
-        <Button onClick={handleRefresh} variant="outline">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          다시 시도
-        </Button>
-      </div>
-    );
-  }
-
-  // 통계 카드 데이터 생성
   const generateStatsCards = () => {
     const cards = [];
-    
+
     if (dashboardData.userStats) {
       const total = dashboardData.userStats.totalUsers || 0;
       const admins = dashboardData.userStats.admins || 0;
       const lockedusers = dashboardData.userStats.lockedUsers || 0;
-    
       const nonAdminActiveUsers = total - admins - lockedusers;
-    
       cards.push({
         title: '총 사용자',
         value: nonAdminActiveUsers.toLocaleString(),
-        change: dashboardData.userStats.userGrowthRate
-          ? `+${dashboardData.userStats.userGrowthRate}%`
-          : null,
+        change: dashboardData.userStats.userGrowthRate ? `+${dashboardData.userStats.userGrowthRate}%` : null,
         icon: Users,
         color: 'blue'
       });
     }
-    
+
     if (dashboardData.studioStats) {
+      const totalStudios = (dashboardData.studioStats.totalStudios || 0) + (dashboardData.studioStats.totalWorkShops || 0);
       cards.push({
-        title: '등록된 스튜디오',
-        value: dashboardData.studioStats.totalStudios?.toLocaleString() || '0',
+        title: '등록된 스튜디오/ 공방',
+        value: totalStudios.toLocaleString() || '0',
         change: dashboardData.studioStats.studioGrowthRate ? `+${dashboardData.studioStats.studioGrowthRate}%` : null,
         icon: Building,
         color: 'green'
       });
     }
-    
+
     if (dashboardData.reservationStats) {
       cards.push({
         title: '이번 달 예약',
@@ -122,9 +94,6 @@ const AdminDashboardPage = () => {
         icon: Calendar,
         color: 'purple'
       });
-    }
-    
-    if (dashboardData.reservationStats) {
       cards.push({
         title: '이번 달 매출',
         value: formatCurrency(dashboardData.reservationStats.thisMonthRevenue || 0),
@@ -133,11 +102,10 @@ const AdminDashboardPage = () => {
         color: 'teal'
       });
     }
-    
+
     return cards;
   };
 
-  // 월별 데이터 생성 (샘플 데이터)
   const generateMonthlyData = () => {
     if (dashboardData.reservationStats?.monthlyData) {
       return dashboardData.reservationStats.monthlyData.map((item, index) => ({
@@ -146,18 +114,9 @@ const AdminDashboardPage = () => {
         percentage: Math.min((item.count || 0) / 200 * 100, 100)
       }));
     }
-    
-    // 기본 샘플 데이터
-    return [
-      { label: '1월', value: 150, percentage: 75 },
-      { label: '2월', value: 120, percentage: 60 },
-      { label: '3월', value: 180, percentage: 90 },
-      { label: '4월', value: 200, percentage: 100 },
-      { label: '5월', value: 165, percentage: 82 }
-    ];
+    return [];
   };
 
-  // 카테고리별 데이터 생성
   const generateCategoryData = () => {
     if (dashboardData.studioStats?.categoryDistribution) {
       return dashboardData.studioStats.categoryDistribution.map(item => ({
@@ -165,20 +124,12 @@ const AdminDashboardPage = () => {
         value: item.count || 0
       }));
     }
-    
-    // 기본 샘플 데이터
-    return [
-      { label: '사진 스튜디오', value: 45 },
-      { label: '음악 스튜디오', value: 25 },
-      { label: '댄스 스튜디오', value: 20 },
-      { label: '기타', value: 10 }
-    ];
+    return [];
   };
 
-  // 최근 예약 데이터 생성
   const generateRecentBookings = () => {
     if (!dashboardData.todayReservations?.reservations) return [];
-    
+
     return dashboardData.todayReservations.reservations.map(reservation => [
       reservation.userInfo?.name || '알 수 없음',
       reservation.studioInfo?.name || '알 수 없음',
@@ -198,9 +149,29 @@ const AdminDashboardPage = () => {
   const categoryData = generateCategoryData();
   const recentBookings = generateRecentBookings();
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-96">
+        <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
+        <p className="text-red-600 mb-4">{error}</p>
+        <Button onClick={handleRefresh} variant="outline">
+          <RefreshCw className="w-4 h-4 mr-2" />
+          다시 시도
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* 새로고침 버튼 */}
       <div className="flex justify-end">
         <Button onClick={handleRefresh} variant="outline" size="small">
           <RefreshCw className="w-4 h-4 mr-2" />
@@ -208,7 +179,6 @@ const AdminDashboardPage = () => {
         </Button>
       </div>
 
-      {/* 통계 카드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statsCards.map((stat, index) => (
           <StatCard
@@ -222,20 +192,21 @@ const AdminDashboardPage = () => {
         ))}
       </div>
 
-      {/* 차트 섹션 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SimpleBarChart 
-          data={monthlyData} 
-          title="월별 예약 현황" 
-        />
-        <SimplePieChart 
-          data={categoryData} 
-          title="스튜디오 카테고리별 분포" 
-        />
+        {monthlyData.length > 0 ? (
+          <SimpleBarChart data={monthlyData} title="월별 예약 현황" />
+        ) : (
+          <div className="flex items-center justify-center h-60 border rounded text-gray-500">월별 데이터가 없습니다.</div>
+        )}
+
+        {categoryData.length > 0 ? (
+          <SimplePieChart data={categoryData} title="스튜디오 카테고리별 분포" />
+        ) : (
+          <div className="flex items-center justify-center h-60 border rounded text-gray-500">카테고리 데이터가 없습니다.</div>
+        )}
       </div>
 
-      {/* 최근 예약 */}
-      {recentBookings.length > 0 && (
+      {recentBookings.length > 0 ? (
         <Table
           headers={['사용자', '스튜디오', '예약 시간', '결제 금액', '상태']}
           data={recentBookings}
@@ -243,10 +214,7 @@ const AdminDashboardPage = () => {
             <Button key="view" variant="outline" size="small">상세보기</Button>
           ]}
         />
-      )}
-
-      {/* 빈 상태 */}
-      {recentBookings.length === 0 && (
+      ) : (
         <div className="text-center py-12">
           <Calendar className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">오늘 예약이 없습니다</h3>

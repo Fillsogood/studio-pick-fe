@@ -5,7 +5,7 @@ import axiosInstance from '../axiosInstance';
  * 백엔드: UserAdminController (/api/admin/users)
  */
 
-const ADMIN_USER_API_BASE = '/admin/users';
+const ADMIN_USER_API_BASE = '/api/admin/users';
 
 export const adminUserAPI = {
   // === 기본 CRUD 작업 ===
@@ -116,7 +116,7 @@ export const adminUserAPI = {
   changeUserStatus: async (userId, status, reason = '') => {
     try {
       const response = await axiosInstance.patch(`${ADMIN_USER_API_BASE}/${userId}/status`, {
-        status,
+        status: status.toUpperCase(),
         reason
       });
       return {
@@ -137,7 +137,7 @@ export const adminUserAPI = {
   changeUserRole: async (userId, role, reason = '') => {
     try {
       const response = await axiosInstance.patch(`${ADMIN_USER_API_BASE}/${userId}/role`, {
-        role,
+        role: role.toUpperCase(),
         reason
       });
       return {

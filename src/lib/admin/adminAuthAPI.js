@@ -5,7 +5,7 @@ import axiosInstance from '../axiosInstance';
  * 일반 사용자와 같은 인증 엔드포인트를 사용하되, 역할(ROLE_ADMIN)로 구분
  */
 
-const ADMIN_AUTH_API_BASE = '/auth';
+const ADMIN_AUTH_API_BASE = '/api/auth';
 
 export const adminAuthAPI = {
   /**
@@ -41,7 +41,7 @@ export const adminAuthAPI = {
    */
   verifyAdminAuth: async () => {
     try {
-      const response = await axiosInstance.get('/users/me'); // 쿠키 기반 요청
+      const response = await axiosInstance.get('/api/users/me'); // 쿠키 기반 요청
       const role = response.data.role;
       console.log('role:', role);
       if (role !== 'ADMIN') {

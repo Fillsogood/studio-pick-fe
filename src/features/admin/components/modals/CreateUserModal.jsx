@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { User, Mail, Lock, UserPlus, X, AlertCircle } from 'lucide-react';
 import { Button, Input } from '../common';
 import { Dialog } from '../common/Dialog';
-import userAPI from '../../../../lib/admin/userAPI';
+import userAPI from '../../../../lib/admin/adminUserAPI';
 import { USER_ROLES, STATUS_CODES } from '../../../../lib/admin';
 
 const CreateUserModal = ({ isOpen, onClose, onSuccess }) => {

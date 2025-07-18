@@ -17,12 +17,11 @@ const Sidebar = ({ currentPage, setCurrentPage }) => {
     { id: 'dashboard', name: '관리자 대시보드', icon: BarChart3 },
     { id: 'studio', name: '스튜디오 승인', icon: Building },
     { id: 'monitoring', name: '예약 모니터링', icon: Calendar },
-    { id: 'payment', name: '결제 및 정산', icon: DollarSign },
+    { id: 'settlement', name: '정산 관리', icon: DollarSign },
     { id: 'refund', name: '환불 요청 리뷰', icon: AlertTriangle },
     { id: 'member', name: '회원 계정 관리', icon: Users },
     { id: 'report', name: '신고 관리', icon: AlertTriangle },
     { id: 'sales', name: '매출 대시보드', icon: TrendingUp },
-    { id: 'notification', name: '알림 관리', icon: Bell },
     { id: 'settings', name: '시스템 설정', icon: Settings }
   ];
 
