@@ -16,6 +16,7 @@ import ReservationListPage from "../pages/ReservationListPage";
 
 import OAuthKakaoCallbackPage from "../features/auth/OAuthKakaoCallbackPage.jsx";
 import OAuthKakaoLogoutCallbackPage from "../features/auth/OAuthKakaoLogoutCallbackPage.jsx";
+import RegisterClassPage from '../features/studio/RegisterClassPage.jsx';
 
 import ResetPasswordPage from "../features/user/ResetPasswordPage.jsx";
 
@@ -40,6 +41,7 @@ const AppRoutes = () => {
         <Route path="/studios" element={<StudioListPage />} />
         <Route path="/studios/:id" element={<StudioDetailPage />} />
         <Route path="/studio/apply" element={<StudioApplyPage />} />
+        <Route path="/classes/apply" element={<RegisterClassPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         {/* 다른 페이지 추가 가능 */}
 

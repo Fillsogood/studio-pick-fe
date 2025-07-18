@@ -15,3 +15,7 @@ export const reserveClass = (id, data) =>
 // 내 클래스 예약 내역
 export const getMyClassReservations = (params) =>
   axiosInstance.get('/api/users/class-reservations', { params });
+
+// 클래스 등록/신청
+export const registerClass = (data) =>
+  axiosInstance.post('/api/classes', data);
