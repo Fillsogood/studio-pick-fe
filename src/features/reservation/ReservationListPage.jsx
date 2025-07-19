@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import LoginModal from "../components/LoginModal";
-import { getMyReservations } from "../lib/reservationAPI";
+import LoginModal from "../../components/LoginModal";
+import { getMyReservations, cancelReservation } from "../../lib/reservationAPI";
 import {
   getStatusText,
   getStatusColor,
   getActionButtonType,
   RESERVATION_STATUS,
-} from "../constants/reservationStatus";
+} from "../../constants/reservationStatus";
+import CancelReservationModal from "../../components/CancelReservationModal";
 
 const ReservationListPage = () => {
   const [activeTab, setActiveTab] = useState("studio"); // 'studio' 또는 'workshop'
@@ -26,6 +27,9 @@ const ReservationListPage = () => {
   const [reservations, setReservations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState(null);
 
   // 예약 목록 조회 API 호출
   useEffect(() => {
@@ -67,112 +71,6 @@ const ReservationListPage = () => {
 
     fetchReservations();
   }, [isLoggedIn, currentPage, activeFilter]);
-
-  // 목업 데이터 - 스튜디오 예약 (실제 API 스펙에 맞춤)
-  const mockStudioReservations = [
-    {
-      id: 1,
-      studioName: "스튜디오 A",
-      date: "2024-01-20",
-      startTime: "14:00",
-      endTime: "16:00",
-      status: RESERVATION_STATUS.CONFIRMED,
-      totalAmount: 50000,
-    },
-    {
-      id: 2,
-      studioName: "스튜디오 B",
-      date: "2024-01-25",
-      startTime: "10:00",
-      endTime: "12:00",
-      status: RESERVATION_STATUS.PENDING,
-      totalAmount: 80000,
-    },
-    {
-      id: 3,
-      studioName: "스튜디오 C",
-      date: "2024-01-15",
-      startTime: "18:00",
-      endTime: "20:00",
-      status: RESERVATION_STATUS.COMPLETED,
-      totalAmount: 120000,
-    },
-    {
-      id: 4,
-      studioName: "스튜디오 D",
-      date: "2024-01-10",
-      startTime: "09:00",
-      endTime: "11:00",
-      status: RESERVATION_STATUS.CANCELLED,
-      totalAmount: 90000,
-    },
-    {
-      id: 5,
-      studioName: "스튜디오 E",
-      date: "2024-01-30",
-      startTime: "15:00",
-      endTime: "17:00",
-      status: RESERVATION_STATUS.CANCEL_REQUESTED,
-      totalAmount: 60000,
-    },
-    {
-      id: 6,
-      studioName: "스튜디오 F",
-      date: "2024-01-05",
-      startTime: "10:00",
-      endTime: "12:00",
-      status: RESERVATION_STATUS.REFUNDED,
-      totalAmount: 70000,
-    },
-  ];
-
-  // 목업 데이터 - 클래스 예약 (실제 API 스펙에 맞춤)
-  const mockClassReservations = [
-    {
-      id: 1,
-      classTitle: "포토그래피 기초 마스터 클래스",
-      instructor: "김민준 사진작가",
-      date: "2024-01-15",
-      startTime: { hour: 14, minute: 0, second: 0, nano: 0 },
-      studioName: "스튜디오 A",
-      participants: 1,
-      amount: 55000,
-      status: RESERVATION_STATUS.CONFIRMED,
-    },
-    {
-      id: 2,
-      classTitle: "제품 사진 촬영 워크샵",
-      instructor: "이지은 상업 사진작가",
-      date: "2024-01-10",
-      startTime: { hour: 10, minute: 0, second: 0, nano: 0 },
-      studioName: "스튜디오 B",
-      participants: 1,
-      amount: 75000,
-      status: RESERVATION_STATUS.PENDING,
-    },
-    {
-      id: 3,
-      classTitle: "인물 사진 포트레이트 클래스",
-      instructor: "박서연 포트레이트 전문가",
-      date: "2024-01-05",
-      startTime: { hour: 13, minute: 0, second: 0, nano: 0 },
-      studioName: "스튜디오 C",
-      participants: 1,
-      amount: 120000,
-      status: RESERVATION_STATUS.COMPLETED,
-    },
-    {
-      id: 4,
-      classTitle: "드론 촬영 마스터 클래스",
-      instructor: "최준호 드론 전문가",
-      date: "2024-01-08",
-      startTime: { hour: 16, minute: 0, second: 0, nano: 0 },
-      studioName: "스튜디오 D",
-      participants: 1,
-      amount: 95000,
-      status: RESERVATION_STATUS.CANCEL_REQUESTED,
-    },
-  ];
 
   // 필터링된 예약 목록
   const getFilteredReservations = () => {
@@ -228,12 +126,47 @@ const ReservationListPage = () => {
   };
 
   // 예약 취소 처리
-  const handleCancelReservation = () => {
+  const handleCancelReservation = (reservation) => {
     if (!isLoggedIn) {
       alert("로그인이 필요합니다.");
       return;
     }
-    alert("취소 요청 기능은 준비 중입니다.");
+    setSelectedReservation(reservation);
+    setShowCancelModal(true);
+  };
+
+  // 취소 확인 처리
+  const handleCancelConfirm = async (cancelReason) => {
+    setIsCancelling(true);
+
+    try {
+      const response = await cancelReservation(
+        selectedReservation.id,
+        cancelReason
+      );
+
+      if (response.data.success) {
+        // 예약 목록에서 해당 예약의 상태 업데이트
+        setReservations((prev) =>
+          prev.map((reservation) =>
+            reservation.id === selectedReservation.id
+              ? { ...reservation, status: "cancel_requested" }
+              : reservation
+          )
+        );
+
+        setShowCancelModal(false);
+        setSelectedReservation(null);
+        alert("취소 요청이 완료되었습니다.");
+      } else {
+        throw new Error(response.data.message || "취소 요청에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("취소 요청 실패:", error);
+      alert(error.message || "취소 요청 중 오류가 발생했습니다.");
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   // 리뷰 작성 처리
@@ -276,7 +209,7 @@ const ReservationListPage = () => {
         buttons.push(
           <button
             key="cancel"
-            onClick={() => handleCancelReservation(reservation.id)}
+            onClick={() => handleCancelReservation(reservation)}
             className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors text-center w-24 h-9 flex items-center justify-center"
           >
             취소 요청
@@ -319,6 +252,18 @@ const ReservationListPage = () => {
       {showLoginModal && (
         <LoginModal onClose={() => setShowLoginModal(false)} />
       )}
+
+      {/* 취소 모달 */}
+      <CancelReservationModal
+        isOpen={showCancelModal}
+        onClose={() => {
+          setShowCancelModal(false);
+          setSelectedReservation(null);
+        }}
+        onConfirm={handleCancelConfirm}
+        reservation={selectedReservation}
+        isLoading={isCancelling}
+      />
 
       {/* 로그아웃 상태일 때 중앙 경고 메시지 */}
       {!isLoggedIn && (

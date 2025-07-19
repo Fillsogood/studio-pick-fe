@@ -12,7 +12,8 @@ import StudioApplyPage from "../features/studio/StudioApplyPage.jsx";
 import ProfilePage from "../features/user/ProfilePage";
 import NotificationSettingPage from "../features/user/NotificationSettingPage.jsx";
 import MyPageLayout from "../layouts/MyPageLayout";
-import ReservationListPage from "../pages/ReservationListPage";
+import ReservationListPage from "../features/reservation/ReservationListPage";
+import ReservationDetailPage from "../features/reservation/ReservationDetailPage";
 
 import OAuthKakaoCallbackPage from "../features/auth/OAuthKakaoCallbackPage.jsx";
 import OAuthKakaoLogoutCallbackPage from "../features/auth/OAuthKakaoLogoutCallbackPage.jsx";
@@ -36,7 +37,10 @@ const AppRoutes = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/reservation" element={<ReservationListPage />} />
-        <Route path="/reservation/:id" element={<ReservationListPage />} />
+        <Route
+          path="/reservation/:reservationId"
+          element={<ReservationDetailPage />}
+        />
         <Route path="/studios" element={<StudioListPage />} />
         <Route path="/studios/:id" element={<StudioDetailPage />} />
         <Route path="/studio/apply" element={<StudioApplyPage />} />
@@ -49,7 +53,7 @@ const AppRoutes = () => {
           <Route path="notification" element={<NotificationSettingPage />} />
         </Route>
       </Route>
-        {/* 어드민 전용 라우트 */}
+      {/* 어드민 전용 라우트 */}
       <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/admin/*" element={<AdminApp />} />
     </Routes>
