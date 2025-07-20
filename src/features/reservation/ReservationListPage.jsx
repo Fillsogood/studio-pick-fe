@@ -1,49 +1,39 @@
-<<<<<<< Updated upstream:src/features/reservation/ReservationListPage.jsx
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import LoginModal from "../../components/LoginModal";
-import { getMyReservations, cancelReservation } from "../../lib/reservationAPI";
-=======
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
-import LoginModal from "../components/LoginModal";
-import { getMyReservations } from "../lib/reservationAPI";
->>>>>>> Stashed changes:src/pages/ReservationListPage.jsx
+import { useAuth } from "../../hooks/useAuth";
+import LoginModal from "../../components/LoginModal";
+import CancelReservationModal from "../../components/CancelReservationModal";
+import { getMyReservations, cancelReservation } from "../../lib/reservationAPI";
 import {
   getStatusText,
   getStatusColor,
   getActionButtonType,
   RESERVATION_STATUS,
 } from "../../constants/reservationStatus";
-import CancelReservationModal from "../../components/CancelReservationModal";
 
 const ReservationListPage = () => {
   const { isLoggedIn } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation(); // ✅ 현재 경로 추적
-
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState(null);
   const [activeTab, setActiveTab] = useState("studio");
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-
   const [reservations, setReservations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [isCancelling, setIsCancelling] = useState(false);
-  const [selectedReservation, setSelectedReservation] = useState(null);
 
-  // ✅ 로그인 안 된 상태 → 모달 최초 1회 띄움
+  const navigate = useNavigate();
+  const location = useLocation();
+
   useEffect(() => {
     if (!isLoggedIn && !showLoginModal) {
       setShowLoginModal(true);
     }
   }, [isLoggedIn]);
 
-  // ✅ 로그인 되어있을 때만 API 호출
   useEffect(() => {
     if (!isLoggedIn) return;
 
@@ -68,33 +58,25 @@ const ReservationListPage = () => {
     fetchReservations();
   }, [isLoggedIn, currentPage, activeFilter]);
 
-<<<<<<< Updated upstream:src/features/reservation/ReservationListPage.jsx
-  // 필터링된 예약 목록
-=======
-  // ✅ 로그인 안 된 상태일 때 모달만 렌더링
   if (!isLoggedIn && showLoginModal) {
     return (
       <LoginModal
         onClose={() => {
           setShowLoginModal(false);
-          navigate("/"); // ✕ 닫기 시 메인홈으로
+          navigate("/");
         }}
         onLoginSuccess={() => {
           setShowLoginModal(false);
-          // 로그인 성공 시 현재 페이지 유지 (navigate 안 함)
         }}
       />
     );
   }
 
->>>>>>> Stashed changes:src/pages/ReservationListPage.jsx
   const getFilteredReservations = () => {
     let filtered = reservations;
 
     filtered = filtered.filter((r) =>
-      activeTab === "studio"
-        ? r.type === "studio"
-        : r.type === "workshop"
+      activeTab === "studio" ? r.type === "studio" : r.type === "workshop"
     );
 
     if (activeFilter !== "all") {
@@ -119,8 +101,6 @@ const ReservationListPage = () => {
     return filtered;
   };
 
-<<<<<<< Updated upstream:src/features/reservation/ReservationListPage.jsx
-  // 예약 취소 처리
   const handleCancelReservation = (reservation) => {
     if (!isLoggedIn) {
       alert("로그인이 필요합니다.");
@@ -130,7 +110,6 @@ const ReservationListPage = () => {
     setShowCancelModal(true);
   };
 
-  // 취소 확인 처리
   const handleCancelConfirm = async (cancelReason) => {
     setIsCancelling(true);
 
@@ -141,7 +120,6 @@ const ReservationListPage = () => {
       );
 
       if (response.data.success) {
-        // 예약 목록에서 해당 예약의 상태 업데이트
         setReservations((prev) =>
           prev.map((reservation) =>
             reservation.id === selectedReservation.id
@@ -162,10 +140,6 @@ const ReservationListPage = () => {
     } finally {
       setIsCancelling(false);
     }
-=======
-  const handleCancelReservation = () => {
-    alert("취소 요청 기능은 준비 중입니다.");
->>>>>>> Stashed changes:src/pages/ReservationListPage.jsx
   };
 
   const handleWriteReview = () => {
@@ -188,49 +162,12 @@ const ReservationListPage = () => {
     ];
 
     const actionType = getActionButtonType(reservation.status);
-<<<<<<< Updated upstream:src/features/reservation/ReservationListPage.jsx
 
-    switch (actionType) {
-      case "cancel":
-        buttons.push(
-          <button
-            key="cancel"
-            onClick={() => handleCancelReservation(reservation)}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors text-center w-24 h-9 flex items-center justify-center"
-          >
-            취소 요청
-          </button>
-        );
-        break;
-
-      case "review":
-        buttons.push(
-          <button
-            key="review"
-            onClick={() => handleWriteReview(reservation.id)}
-            className="bg-lime-300 hover:bg-lime-200 text-black px-4 py-2 rounded text-sm font-medium transition-colors text-center w-24 h-9 flex items-center justify-center"
-          >
-            리뷰 작성
-          </button>
-        );
-        break;
-      case "rebook":
-        buttons.push(
-          <button
-            key="rebook"
-            onClick={() => handleRebook(reservation)}
-            className="bg-lime-300 hover:bg-lime-200 text-black px-4 py-2 rounded text-sm font-medium transition-colors text-center w-24 h-9 flex items-center justify-center"
-          >
-            예약하기
-          </button>
-        );
-        break;
-=======
     if (actionType === "cancel") {
       buttons.push(
         <button
           key="cancel"
-          onClick={() => handleCancelReservation(reservation.id)}
+          onClick={() => handleCancelReservation(reservation)}
           className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors text-center w-24 h-9 flex items-center justify-center"
         >
           취소 요청
@@ -258,7 +195,6 @@ const ReservationListPage = () => {
           예약하기
         </button>
       );
->>>>>>> Stashed changes:src/pages/ReservationListPage.jsx
     }
 
     return buttons;
@@ -268,13 +204,6 @@ const ReservationListPage = () => {
 
   return (
     <div className="p-8 space-y-8">
-<<<<<<< Updated upstream:src/features/reservation/ReservationListPage.jsx
-      {/* 로그인 모달 */}
-      {showLoginModal && (
-        <LoginModal onClose={() => setShowLoginModal(false)} />
-      )}
-
-      {/* 취소 모달 */}
       <CancelReservationModal
         isOpen={showCancelModal}
         onClose={() => {
@@ -286,66 +215,6 @@ const ReservationListPage = () => {
         isLoading={isCancelling}
       />
 
-      {/* 로그아웃 상태일 때 중앙 경고 메시지 */}
-      {!isLoggedIn && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-40">
-          <div className="bg-white rounded-2xl shadow-2xl p-10 text-center max-w-sm mx-4 relative">
-            {/* X 버튼 */}
-            <Link
-              to="/"
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </Link>
-
-            <div className="mb-8">
-              <svg
-                className="w-12 h-12 text-yellow-500 mx-auto mb-4"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                로그인이 필요합니다
-              </h2>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                예약 내역을 확인하려면
-                <br />
-                로그인해주세요
-              </p>
-            </div>
-
-            <button
-              onClick={() => setShowLoginModal(true)}
-              className="inline-block bg-lime-300 hover:bg-lime-200 text-black px-8 py-3 rounded-lg text-base font-medium transition-colors w-full"
-            >
-              로그인하기
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 페이지 제목 */}
-=======
-      {/* 제목 */}
->>>>>>> Stashed changes:src/pages/ReservationListPage.jsx
       <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-3">
           {activeTab === "studio" ? "스튜디오 예약 내역" : "공방 예약 내역"}
@@ -355,7 +224,6 @@ const ReservationListPage = () => {
         </p>
       </div>
 
-      {/* 탭 */}
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-12">
           {["studio", "workshop"].map((tab) => (
@@ -374,7 +242,6 @@ const ReservationListPage = () => {
         </nav>
       </div>
 
-      {/* 필터 + 검색 */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex space-x-3">
           {[
@@ -405,7 +272,6 @@ const ReservationListPage = () => {
           ))}
         </div>
 
-        {/* 검색 */}
         <div className="flex-1 max-w-md">
           <div className="relative">
             <input
@@ -434,7 +300,6 @@ const ReservationListPage = () => {
         </div>
       </div>
 
-      {/* 로딩 / 에러 / 목록 */}
       {isLoading ? (
         <div className="text-center py-16">불러오는 중...</div>
       ) : apiError ? (
@@ -455,17 +320,12 @@ const ReservationListPage = () => {
                       ? reservation.studioName
                       : reservation.workshopTitle || reservation.studioName}
                   </h3>
-                  <p className="text-gray-600 mb-1">
-                    날짜: {reservation.date}
-                  </p>
+                  <p className="text-gray-600 mb-1">날짜: {reservation.date}</p>
                   <p className="text-gray-600 mb-1">
                     시간: {reservation.startTime} - {reservation.endTime}
                   </p>
                   <p className="text-gray-600 mb-1">
-                    상태:{" "}
-                    <span className={getStatusColor(reservation.status)}>
-                      {getStatusText(reservation.status)}
-                    </span>
+                    상태: <span className={getStatusColor(reservation.status)}>{getStatusText(reservation.status)}</span>
                   </p>
                   <div className="mt-4 flex gap-2">{getActionButtons(reservation)}</div>
                 </div>
