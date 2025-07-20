@@ -1,11 +1,17 @@
+// src/components/LoginModal.jsx
+
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { login } from "../lib/authAPI";
 import { getMyProfile } from "../lib/userAPI";
+import { useAuth } from "../hooks/useAuth";
 
 const LoginModal = ({ onClose, onLoginSuccess }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login: setAuthUser } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -15,33 +21,35 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
   const handleKakaoLogin = () => {
     const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
     const REDIRECT_URI = import.meta.env.VITE_KAKAO_REDIRECT_URI;
-
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
     window.location.href = kakaoAuthUrl;
   };
 
   const handleForgotPassword = () => {
-    onClose(); // 모달 닫기
-    navigate("/forgot-password"); // 라우팅
+    onClose();
+    navigate("/forgot-password");
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const response = await login(email, password, rememberMe);
-
-      // 로그인 성공 후 → 사용자 정보 요청
       const profileRes = await getMyProfile();
       const nickname = profileRes.data.data.nickname;
 
-      // 저장
       localStorage.setItem("accessToken", response.data.accessToken);
       localStorage.setItem("loginType", "local");
-      localStorage.setItem("nickname", nickname); // 여기서 정확히 저장
+      localStorage.setItem("nickname", nickname);
 
-      if (onLoginSuccess) onLoginSuccess(); // Header 닉네임 갱신
-      onClose();
-      navigate("/");
+      setAuthUser(profileRes.data.data);
+
+      // ✅ 로그인 성공 후 분기 처리
+      if (typeof onLoginSuccess === "function") {
+        onLoginSuccess(); // ✅ 부모에서 모달 닫기 + 이동까지 다 처리
+      } else {
+        navigate(location.pathname); // 기본: 현재 페이지로
+        onClose(); // 모달 닫기
+      }
     } catch (err) {
       console.error(err);
       setError("이메일 또는 비밀번호가 올바르지 않습니다.");
@@ -51,7 +59,6 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
       <div className="bg-white w-full max-w-md p-8 rounded-xl shadow-lg relative">
-        {/* 닫기 버튼 */}
         <button
           onClick={onClose}
           className="absolute top-3 right-4 text-xl text-gray-400 hover:text-black"
@@ -123,7 +130,6 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
           </button>
         </form>
 
-        {/* 회원가입 버튼 */}
         <button
           type="button"
           onClick={() => {
@@ -141,7 +147,6 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
           <hr className="flex-grow border-gray-300" />
         </div>
 
-        {/* 카카오 로그인 */}
         <button
           type="button"
           onClick={handleKakaoLogin}

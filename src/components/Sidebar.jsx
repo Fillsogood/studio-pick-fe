@@ -40,6 +40,7 @@ const Sidebar = () => {
           <NavLink
             key={item.label}
             to={item.path}
+            end
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100 transition ${
                 isActive ? "bg-lime-200 font-semibold" : "text-gray-700"
