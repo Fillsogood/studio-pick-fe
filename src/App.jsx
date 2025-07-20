@@ -1,11 +1,14 @@
 import { BrowserRouter } from 'react-router-dom';
+import { RecoilRoot } from 'recoil';
 import AppRoutes from './router';
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+    <RecoilRoot>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </RecoilRoot>
   );
 }
 

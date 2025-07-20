@@ -8,6 +8,7 @@ import StudioListPage from "../features/studio/StudioListPage.jsx";
 import StudioDetailPage from "../features/studio/StudioDetailPage.jsx";
 import ForgotPasswordPage from "../features/user/ForgotPasswordPage.jsx";
 import StudioApplyPage from "../features/studio/StudioApplyPage.jsx";
+import ClassApplyPage from "../features/workshop/ClassRegisterPage.jsx";
 
 import ProfilePage from "../features/user/ProfilePage";
 import NotificationSettingPage from "../features/user/NotificationSettingPage.jsx";
@@ -45,6 +46,7 @@ const AppRoutes = () => {
         <Route path="/studios/:id" element={<StudioDetailPage />} />
         <Route path="/studio/apply" element={<StudioApplyPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/classes/apply" element={<ClassApplyPage />} />
         {/* 다른 페이지 추가 가능 */}
 
         {/* 마이페이지 영역 */}
