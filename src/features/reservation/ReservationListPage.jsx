@@ -162,8 +162,10 @@ const ReservationListPage = () => {
     }
   };
 
-  const handleWriteReview = () => {
-    alert("리뷰 작성 기능은 준비 중입니다.");
+  const handleWriteReview = (reservation) => {
+    // 리뷰 작성 페이지로 이동 (예약 정보 전체를 URL 파라미터로 전달)
+    const reservationData = encodeURIComponent(JSON.stringify(reservation));
+    window.location.href = `/review/write/${reservation.id}?data=${reservationData}`;
   };
 
   const handleRebook = () => {
@@ -201,7 +203,7 @@ const ReservationListPage = () => {
       buttons.push(
         <button
           key="review"
-          onClick={() => handleWriteReview(reservation.id)}
+          onClick={() => handleWriteReview(reservation)}
           className="bg-lime-300 hover:bg-lime-200 text-black px-4 py-2 rounded text-sm font-medium transition-colors text-center w-24 h-9 flex items-center justify-center"
         >
           리뷰 작성

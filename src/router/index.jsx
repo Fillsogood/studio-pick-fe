@@ -14,6 +14,7 @@ import ProfilePage from "../features/user/ProfilePage";
 import NotificationSettingPage from "../features/user/NotificationSettingPage.jsx";
 import MyPageLayout from "../layouts/MyPageLayout";
 import ReservationListPage from "../features/reservation/ReservationListPage";
+import ReviewWritePage from "../features/review/ReviewWritePage";
 
 import OAuthKakaoCallbackPage from "../features/auth/OAuthKakaoCallbackPage.jsx";
 import OAuthKakaoLogoutCallbackPage from "../features/auth/OAuthKakaoLogoutCallbackPage.jsx";
@@ -37,6 +38,10 @@ const AppRoutes = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/reservation" element={<ReservationListPage />} />
+        <Route
+          path="/review/write/:reservationId"
+          element={<ReviewWritePage />}
+        />
         <Route path="/studios" element={<StudioListPage />} />
         <Route path="/studios/:id" element={<StudioDetailPage />} />
         <Route path="/studio/apply" element={<StudioApplyPage />} />
