@@ -10,6 +10,7 @@ import {
   getActionButtonType,
   RESERVATION_STATUS,
 } from "../../constants/reservationStatus";
+import ReservationDetailModal from "../../components/ReservationDetailModal";
 
 const ReservationListPage = () => {
   const { isLoggedIn } = useAuth();
@@ -24,6 +25,10 @@ const ReservationListPage = () => {
   const [reservations, setReservations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedReservationId, setSelectedReservationId] = useState(null);
+
+  // 예약 목록 조회 API 호출
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -41,7 +46,10 @@ const ReservationListPage = () => {
       setIsLoading(true);
       setApiError(null);
       try {
-        const response = await getMyReservations({ page: currentPage, size: 10 });
+        const response = await getMyReservations({
+          page: currentPage,
+          size: 10,
+        });
         if (response.data.success) {
           setReservations(response.data.data.reservations);
         } else {
@@ -82,7 +90,9 @@ const ReservationListPage = () => {
     if (activeFilter !== "all") {
       filtered = filtered.filter((r) => {
         if (activeFilter === "cancelled") {
-          return ["cancel_requested", "cancelled", "refunded"].includes(r.status);
+          return ["cancel_requested", "cancelled", "refunded"].includes(
+            r.status
+          );
         }
         return r.status === activeFilter;
       });
@@ -99,6 +109,16 @@ const ReservationListPage = () => {
     }
 
     return filtered;
+  };
+
+  // 예약 상세보기 처리
+  const handleDetailView = (reservation) => {
+    if (!isLoggedIn) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+    setSelectedReservationId(reservation.id);
+    setShowDetailModal(true);
   };
 
   const handleCancelReservation = (reservation) => {
@@ -151,15 +171,18 @@ const ReservationListPage = () => {
   };
 
   const getActionButtons = (reservation) => {
-    const buttons = [
-      <Link
+    const buttons = [];
+
+    // 상세보기 버튼 (항상 표시)
+    buttons.push(
+      <button
         key="detail"
-        to={`/reservation/${reservation.id}`}
+        onClick={() => handleDetailView(reservation)}
         className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors text-center w-24 h-9 flex items-center justify-center"
       >
         상세보기
-      </Link>,
-    ];
+      </button>
+    );
 
     const actionType = getActionButtonType(reservation.status);
 
@@ -215,12 +238,27 @@ const ReservationListPage = () => {
         isLoading={isCancelling}
       />
 
+      {/* 예약 상세 모달 */}
+      <ReservationDetailModal
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedReservationId(null);
+        }}
+        reservationId={selectedReservationId}
+        onCancelSuccess={() => {
+          // 예약 취소 후 목록 새로고침
+          window.location.reload();
+        }}
+      />
+
       <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-3">
           {activeTab === "studio" ? "스튜디오 예약 내역" : "공방 예약 내역"}
         </h1>
         <p className="text-gray-600 text-lg">
-          예약된 {activeTab === "studio" ? "스튜디오" : "공방"} 목록과 상태를 확인하실 수 있습니다.
+          예약된 {activeTab === "studio" ? "스튜디오" : "공방"} 목록과 상태를
+          확인하실 수 있습니다.
         </p>
       </div>
 
@@ -301,7 +339,12 @@ const ReservationListPage = () => {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-16">불러오는 중...</div>
+        <div className="text-center py-16">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-lime-500"></div>
+          <p className="text-gray-500 text-lg mt-4">
+            예약 목록을 불러오는 중...
+          </p>
+        </div>
       ) : apiError ? (
         <div className="text-red-600 py-8 text-center">{apiError}</div>
       ) : filteredReservations.length === 0 ? (
@@ -314,24 +357,129 @@ const ReservationListPage = () => {
               className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow"
             >
               <div className="flex flex-col sm:flex-row gap-6">
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold mb-2 text-gray-900">
-                    {activeTab === "studio"
-                      ? reservation.studioName
-                      : reservation.workshopTitle || reservation.studioName}
-                  </h3>
-                  <p className="text-gray-600 mb-1">날짜: {reservation.date}</p>
-                  <p className="text-gray-600 mb-1">
-                    시간: {reservation.startTime} - {reservation.endTime}
-                  </p>
-                  <p className="text-gray-600 mb-1">
-                    상태: <span className={getStatusColor(reservation.status)}>{getStatusText(reservation.status)}</span>
-                  </p>
-                  <div className="mt-4 flex gap-2">{getActionButtons(reservation)}</div>
+                {/* 이미지 영역 */}
+                <div className="w-full sm:w-48 h-48 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                  {activeTab === "studio" && reservation.studioImageUrl ? (
+                    <img
+                      src={reservation.studioImageUrl}
+                      alt={reservation.studioName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = "/default-studio.jpg";
+                      }}
+                    />
+                  ) : activeTab === "workshop" &&
+                    reservation.workshopImageUrl ? (
+                    <img
+                      src={reservation.workshopImageUrl}
+                      alt={reservation.workshopTitle}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = "/default-workshop.jpg";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-300 flex items-center justify-center">
+                      <svg
+                        className="w-12 h-12 text-gray-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+
+                {/* 정보 영역 */}
+                <div className="flex-1 flex flex-col justify-between">
+                  <div>
+                    {/* 제목 + 상태 배지 */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {activeTab === "studio"
+                          ? reservation.studioName
+                          : reservation.workshopTitle || reservation.studioName}
+                      </h3>
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
+                          reservation.status
+                        )}`}
+                      >
+                        {getStatusText(reservation.status)}
+                      </span>
+                    </div>
+
+                    {/* 상세한 예약 정보 */}
+                    <div className="text-base text-gray-600 space-y-2">
+                      <p>
+                        <span className="font-medium">예약일:</span>{" "}
+                        {reservation.date}
+                      </p>
+                      <p>
+                        <span className="font-medium">장소:</span>{" "}
+                        {activeTab === "studio"
+                          ? reservation.studioName
+                          : reservation.workshopTitle || reservation.studioName}
+                      </p>
+                      <p>
+                        <span className="font-medium">
+                          {activeTab === "studio" ? "이용" : "수업"} 시간:
+                        </span>{" "}
+                        {reservation.startTime} - {reservation.endTime}
+                      </p>
+                      {reservation.totalAmount && (
+                        <p>
+                          <span className="font-medium">가격:</span> ₩
+                          {reservation.totalAmount.toLocaleString()}
+                        </p>
+                      )}
+                      {activeTab === "workshop" && reservation.instructor && (
+                        <p>
+                          <span className="font-medium">강사:</span>{" "}
+                          {reservation.instructor}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 버튼 영역 - 오른쪽 하단 */}
+                  <div className="mt-4 flex gap-2 justify-end">
+                    {getActionButtons(reservation)}
+                  </div>
                 </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* 페이지네이션 */}
+      {filteredReservations.length > 0 && (
+        <div className="flex justify-center mt-8">
+          <nav className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              이전
+            </button>
+            <span className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md">
+              {currentPage}
+            </span>
+            <button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={filteredReservations.length < 10}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              다음
+            </button>
+          </nav>
         </div>
       )}
     </div>
