@@ -8,54 +8,42 @@ const RefundPolicyModal = ({ isOpen, onClose }) => {
 
   const studioRefundPolicy = [
     {
-      period: "예약일 7일 전까지",
+      period: "예약 시작 24시간 전까지",
       refund: "100% 환불",
       description: "전액 환불 가능",
       color: "text-green-600",
     },
     {
-      period: "예약일 3일 전까지",
-      refund: "70% 환불",
-      description: "30% 수수료 차감",
-      color: "text-yellow-600",
-    },
-    {
-      period: "예약일 1일 전까지",
+      period: "예약 시작 12시간 전까지",
       refund: "50% 환불",
       description: "50% 수수료 차감",
       color: "text-orange-600",
     },
     {
-      period: "예약일 당일",
+      period: "예약 시작 12시간 이내",
       refund: "환불 불가",
-      description: "환불 불가능",
+      description: "취소 불가능",
       color: "text-red-600",
     },
   ];
 
   const workshopRefundPolicy = [
     {
-      period: "수업일 7일 전까지",
+      period: "수업 시작 24시간 전까지",
       refund: "100% 환불",
       description: "전액 환불 가능",
       color: "text-green-600",
     },
     {
-      period: "수업일 3일 전까지",
-      refund: "80% 환불",
-      description: "20% 수수료 차감",
-      color: "text-yellow-600",
-    },
-    {
-      period: "수업일 1일 전까지",
+      period: "수업 시작 12시간 전까지",
       refund: "50% 환불",
       description: "50% 수수료 차감",
       color: "text-orange-600",
     },
     {
-      period: "수업일 당일",
+      period: "수업 시작 12시간 이내",
       refund: "환불 불가",
-      description: "환불 불가능",
+      description: "취소 불가능",
       color: "text-red-600",
     },
   ];

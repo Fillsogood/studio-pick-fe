@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { X, AlertTriangle, ChevronDown } from "lucide-react";
+import { X, AlertTriangle, ChevronDown, Info } from "lucide-react";
 import { cancelReservation } from "../lib/reservationAPI";
+import RefundPolicyModal from "./RefundPolicyModal";
 
 const CancelReservationModal = ({
   isOpen,
@@ -12,6 +13,7 @@ const CancelReservationModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [estimatedRefund, setEstimatedRefund] = useState(null);
+  const [showRefundPolicy, setShowRefundPolicy] = useState(false);
 
   // 예상 환불 금액 계산
   useEffect(() => {
@@ -21,7 +23,7 @@ const CancelReservationModal = ({
     }
   }, [isOpen, reservation]);
 
-  // 환불 계산 로직 (백엔드 정책 기반)
+  // 환불 계산 로직 (백엔드 정책 기반 - 통일된 정책)
   const calculateEstimatedRefund = (reservation, currentTime = new Date()) => {
     if (!reservation) return null;
 
@@ -48,33 +50,20 @@ const CancelReservationModal = ({
     let policyText = "";
     let canCancel = true;
 
-    // 클래스(워크샵)와 스튜디오 예약 구분
-    const isWorkshop =
-      reservation.type === "workshop" || reservation.workshopTitle;
-
-    if (isWorkshop) {
-      // 클래스 취소 정책: 12시간 전까지만 취소 가능
-      if (hoursUntilReservation >= 12) {
-        refundRate = 100; // 전액 환불
-        policyText = "12시간 전 취소 - 전액환불";
-      } else {
-        refundRate = 0; // 취소 불가
-        policyText = "12시간 이내 - 취소 불가";
-        canCancel = false;
-      }
+    // 백엔드와 동일한 통일된 정책 적용 (스튜디오, 클래스 모두 동일)
+    if (hoursUntilReservation >= 24) {
+      // 24시간 전까지 - 전액환불
+      refundRate = 100;
+      policyText = "24시간 전 취소 - 전액환불";
+    } else if (hoursUntilReservation >= 12) {
+      // 12시간 전까지 - 50% 환불
+      refundRate = 50;
+      policyText = "12시간 전 취소 - 50% 환불";
     } else {
-      // 스튜디오 취소 정책: 24시간/12시간 기준
-      if (hoursUntilReservation >= 24) {
-        refundRate = 100; // 전액 환불
-        policyText = "24시간 전 취소 - 전액환불";
-      } else if (hoursUntilReservation >= 12) {
-        refundRate = 50; // 50% 환불
-        policyText = "12시간 전 취소 - 50% 환불";
-      } else {
-        refundRate = 0; // 취소 불가
-        policyText = "12시간 이내 - 취소 불가";
-        canCancel = false;
-      }
+      // 12시간 이내 - 취소 불가
+      refundRate = 0;
+      policyText = "12시간 이내 - 취소 불가";
+      canCancel = false;
     }
 
     const estimatedAmount = Math.floor(
@@ -89,7 +78,6 @@ const CancelReservationModal = ({
       canCancel,
       originalAmount: reservation.totalAmount,
       cancellationFee: reservation.totalAmount - estimatedAmount,
-      isWorkshop,
     };
   };
 
@@ -101,10 +89,7 @@ const CancelReservationModal = ({
 
     // 취소가 불가능한 경우 체크
     if (estimatedRefund && !estimatedRefund.canCancel) {
-      const errorMessage = estimatedRefund.isWorkshop
-        ? "클래스 시작 12시간 이내에는 취소할 수 없습니다."
-        : "예약 시작 12시간 이내에는 취소할 수 없습니다.";
-      setError(errorMessage);
+      setError("예약 시작 12시간 이내에는 취소할 수 없습니다.");
       return;
     }
 
@@ -168,7 +153,16 @@ const CancelReservationModal = ({
             <h3 className="text-lg font-semibold text-gray-900">
               취소/환불 규정 안내
             </h3>
-            <ChevronDown className="w-5 h-5 text-gray-400" />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowRefundPolicy(true)}
+                className="text-xs text-gray-500 hover:text-lime-600 transition-colors flex items-center gap-1 underline"
+              >
+                <Info className="w-3 h-3" />
+                환불규정 보기
+              </button>
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            </div>
           </div>
 
           {/* 수수료 경고 */}
@@ -267,13 +261,10 @@ const CancelReservationModal = ({
               <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
               <div>
                 <p className="text-sm font-medium text-red-900">
-                  취소가 불가능한{" "}
-                  {estimatedRefund.isWorkshop ? "클래스" : "예약"}입니다
+                  취소가 불가능한 예약입니다
                 </p>
                 <p className="text-xs text-red-700 mt-1">
-                  {estimatedRefund.isWorkshop
-                    ? "클래스 시작 12시간 이내에는 취소할 수 없습니다."
-                    : "예약 시작 12시간 이내에는 취소할 수 없습니다."}
+                  예약 시작 12시간 이내에는 취소할 수 없습니다.
                 </p>
               </div>
             </div>
@@ -309,6 +300,12 @@ const CancelReservationModal = ({
           </button>
         </div>
       </div>
+
+      {/* 환불 정책 모달 */}
+      <RefundPolicyModal
+        isOpen={showRefundPolicy}
+        onClose={() => setShowRefundPolicy(false)}
+      />
     </div>
   );
 };
