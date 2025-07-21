@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getStudioDetail } from "../../lib/studioAPI";
+import { getStudioReviews, deleteReview } from "../../lib/reviewAPI";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import { FaCheckCircle, FaExclamationTriangle, FaHeart } from "react-icons/fa";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function StudioDetailPage() {
   const { studioId } = useParams();
@@ -12,11 +14,46 @@ export default function StudioDetailPage() {
   const navigate = useNavigate();
   const [favorites, setFavorites] = useState([]);
   const isFavorite = studio && favorites.includes(studio.id);
+  const { isLoggedIn, user } = useAuth();
+
+  // 리뷰 관련 상태 추가
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState(null);
   const handleReservation = () => {
     alert("예약 기능은 아직 준비 중이에요");
   };
   const handlePayment = () => {
     alert("결제 기능은 아직 준비 중이에요");
+  };
+
+  // 혜은 - 리뷰 수정/삭제 함수들
+  const handleEditReview = (review) => {
+    const reviewData = encodeURIComponent(
+      JSON.stringify({
+        rating: review.rating,
+        comment: review.comment,
+        imageUrls: review.imageUrls || [],
+      })
+    );
+    navigate(`/review/edit/${review.id}?reviewData=${reviewData}`);
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm("정말로 이 리뷰를 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      await deleteReview(reviewId);
+      alert("리뷰가 삭제되었습니다.");
+      // 리뷰 목록 새로고침
+      const res = await getStudioReviews(studioId, { page: 1, size: 10 });
+      setReviews(res.data?.data || []);
+    } catch (error) {
+      console.error("리뷰 삭제 오류:", error);
+      alert("리뷰 삭제에 실패했습니다.");
+    }
   };
 
   useEffect(() => {
@@ -34,6 +71,44 @@ export default function StudioDetailPage() {
     };
 
     fetchStudio();
+  }, [studioId]);
+
+  // 혜은 - 리뷰 데이터 가져오기
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (!studioId) return;
+
+      setReviewsLoading(true);
+      setReviewsError(null);
+
+      try {
+        console.log("🔍 요청하는 studioId:", studioId);
+        console.log("🔍 요청 URL:", `/api/reviews/studio/${studioId}`);
+        const res = await getStudioReviews(studioId, { page: 1, size: 10 });
+        console.log("✅ 스튜디오 리뷰 백엔드 응답:", res);
+        setReviews(res.data?.data || []);
+      } catch (err) {
+        console.error("스튜디오 리뷰 오류:", err);
+        console.error("에러 응답:", err.response?.data);
+        console.error("에러 상태:", err.response?.status);
+        console.error("에러 헤더:", err.response?.headers);
+
+        if (err.response?.status === 401) {
+          setReviewsError("리뷰를 보려면 로그인이 필요합니다.");
+        } else if (err.response?.status === 400) {
+          setReviewsError(
+            "잘못된 요청입니다: " +
+              (err.response?.data?.message || "알 수 없는 오류")
+          );
+        } else {
+          setReviewsError("리뷰를 불러오는데 실패했습니다.");
+        }
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    fetchReviews();
   }, [studioId]);
 
   const handleFavoriteClick = (studioId) => {
@@ -152,6 +227,116 @@ export default function StudioDetailPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 리뷰 섹션 -혜은 */}
+      <div className="mt-12">
+        <h3 className="text-2xl font-bold mb-6">리뷰</h3>
+
+        {reviewsLoading ? (
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <p className="text-gray-500 mt-2">리뷰를 불러오는 중...</p>
+          </div>
+        ) : reviewsError ? (
+          <div className="text-center py-8">
+            <p className="text-red-500 mb-2">{reviewsError}</p>
+            <button
+              onClick={() => navigate("/login")}
+              className="text-blue-500 hover:text-blue-600 underline"
+            >
+              로그인하기
+            </button>
+          </div>
+        ) : reviews.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            아직 리뷰가 없습니다.
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {reviews.map((review) => (
+              <div
+                key={review.id}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-medium text-gray-600">
+                        {review.nickname?.charAt(0) || "U"}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {review.nickname}
+                      </p>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span
+                            key={star}
+                            className={`text-lg ${
+                              star <= review.rating
+                                ? "text-yellow-400"
+                                : "text-gray-300"
+                            }`}
+                          >
+                            ★
+                          </span>
+                        ))}
+                        <span className="text-sm text-gray-500 ml-2">
+                          {review.rating}점
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </span>
+                    {/* 로그인한 사용자가 리뷰 작성자인 경우에만 수정/삭제 버튼 표시 */}
+                    {isLoggedIn && user && review.userId === user.id && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditReview(review)}
+                          className="text-sm text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50"
+                        >
+                          수정
+                        </button>
+                        <button
+                          onClick={() => handleDeleteReview(review.id)}
+                          className="text-sm text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <p className="text-gray-700 mb-4 whitespace-pre-line">
+                  {review.comment}
+                </p>
+
+                {/* 리뷰 이미지들 */}
+                {review.imageUrls && review.imageUrls.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {review.imageUrls.map((imageUrl, index) => (
+                      <img
+                        key={index}
+                        src={imageUrl}
+                        alt={`리뷰 이미지 ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg"
+                        onError={(e) => {
+                          e.target.src = "/default-image.jpg";
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

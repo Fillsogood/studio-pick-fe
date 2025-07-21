@@ -49,6 +49,11 @@ export const updateReview = (reviewId, data) => {
   return axiosInstance.patch(`/api/reviews/${reviewId}`, requestData);
 };
 
+// 리뷰 상세 조회
+export const getReviewDetail = (reviewId) => {
+  return axiosInstance.get(`/api/reviews/${reviewId}`);
+};
+
 // 리뷰 삭제
 export const deleteReview = (reviewId) => {
   return axiosInstance.delete(`/api/reviews/${reviewId}`);
