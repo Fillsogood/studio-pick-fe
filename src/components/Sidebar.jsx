@@ -36,16 +36,17 @@ const Sidebar = () => {
   const location = useLocation();
 
   const isActivePath = (itemPath) => {
-    if (itemPath === "/") {
-      // 홈은 정확히 일치할 때만 활성화
-      return location.pathname === "/";
-    }
-    if (itemPath === "/studios") {
-      // /studios는 정확히 일치할 때만 활성화
-      return location.pathname === "/studios";
-    }
-    // 다른 경로들은 startsWith로 확인
-    return location.pathname.startsWith(itemPath);
+    const pathname = location.pathname;
+
+    // 정확히 일치해야 하는 항목들
+    if (itemPath === "/") return pathname === "/";
+    if (itemPath === "/studios") return pathname === "/studios";
+    if (itemPath === "/classes") return pathname === "/classes";
+    if (itemPath === "/classes/apply") return pathname === "/classes/apply";
+    if (itemPath === "/studios/rental") return pathname === "/studios/rental";
+
+    // 그 외는 startsWith 허용 (예: /gallery/1)
+    return pathname.startsWith(itemPath);
   };
 
   return (

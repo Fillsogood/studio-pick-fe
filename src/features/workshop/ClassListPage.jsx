@@ -1,4 +1,3 @@
-// pages/ClassListPage.jsx
 import { useEffect, useState } from 'react';
 import { getClasses } from '@/lib/classAPI';
 import ClassCard from '@/components/ClassCard';
@@ -15,7 +14,7 @@ const ClassListPage = () => {
   }, []);
 
   return (
-    <div className="px-8 py-6">
+    <div className="px-6 py-6">
       {/* 상단 타이틀 및 설명 */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold">클래스 탐색</h2>
@@ -46,7 +45,7 @@ const ClassListPage = () => {
       </div>
 
       {/* 클래스 카드 목록 */}
-      <div className="grid grid-cols-4 gap-5">
+      <div className="grid grid-cols-5 gap-[6px]">
         {classList.map((item) => (
           <ClassCard key={item.id} data={item} />
         ))}
