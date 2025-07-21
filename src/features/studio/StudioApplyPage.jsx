@@ -19,8 +19,6 @@ export default function StudioApplyPage() {
   const [address, setAddress] = useState("");
   const [addressDetail, setAddressDetail] = useState("");
   const [thumbnailImage, setThumbnailImage] = useState("");
-  const [businessLicenseFile, setBusinessLicenseFile] = useState(null);
-  const [bizError, setBizError] = useState("");
   const [previewImages, setPreviewImages] = useState([]);
   const [studioImagesError, setStudioImagesError] = useState("");
   const [sizeInput, setSizeInput] = useState("");
@@ -29,28 +27,6 @@ export default function StudioApplyPage() {
   const [thumbnailError, setThumbnailError] = useState("");
 
   const navigate = useNavigate();
-
-  const { getRootProps: getBizRootProps, getInputProps: getBizInputProps } =
-    useDropzone({
-      accept: {
-        "application/pdf": [".pdf"],
-        "image/jpeg": [".jpg", ".jpeg"],
-        "image/png": [".png"],
-      },
-      maxFiles: 1,
-      maxSize: 5 * 1024 * 1024,
-      onDrop: (acceptedFiles, fileRejections) => {
-        if (fileRejections.length > 0) {
-          setBizError(
-            "PDF, JPG, PNG 파일만 첨부 가능하며 5MB 이하만 가능합니다."
-          );
-          setBusinessLicenseFile(null);
-          return;
-        }
-        setBizError("");
-        setBusinessLicenseFile(acceptedFiles[0]);
-      },
-    });
 
   const {
     getRootProps: getThumbnailRootProps,
@@ -65,7 +41,7 @@ export default function StudioApplyPage() {
     onDrop: async (acceptedFiles, fileRejections) => {
       if (fileRejections.length > 0) {
         setThumbnailError(
-          "JPG, PNG 파일만 첨부 가능하며 5MB 이하만 가능합니다."
+          "JPG, PNG 파일만 첨부 가능하며 1MB 이하만 가능합니다."
         );
         setThumbnailPreview(null);
         setThumbnailImage(null);
@@ -117,7 +93,7 @@ export default function StudioApplyPage() {
     onDrop: async (acceptedFiles, fileRejections) => {
       if (fileRejections.length > 0) {
         setStudioImagesError(
-          "JPG, PNG 파일만 첨부 가능하며 10MB 이하, 최대 5장까지 업로드 가능합니다."
+          "JPG, PNG 파일만 첨부 가능하며 50MB 이하, 최대 5장까지 업로드 가능합니다."
         );
         setPreviewImages([]);
         setImageUrls([]);
@@ -706,100 +682,6 @@ export default function StudioApplyPage() {
               )}
             </div>
           </div>
-
-          {/* 사업자등록증 섹션 */}
-          {/* <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-gray-700 border-b pb-2">
-              사업자 등록증
-            </h3>
-
-            <div className="space-y-2">
-              <p className="text-sm text-gray-600">
-                PDF, JPG, PNG 형식의 파일을 업로드하세요 (최대 5MB)
-              </p>
-
-              <div className="flex gap-3">
-                <div
-                  {...getBizRootProps()}
-                  className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-lime-400 hover:bg-lime-50 transition-colors"
-                >
-                  <input {...getBizInputProps()} />
-
-                  {businessLicenseFile ? (
-                    // 파일이 있을 때 파일 아이콘과 정보 표시
-                    <div className="flex items-center space-x-3">
-                      <div className="flex-shrink-0">
-                        <svg
-                          className="h-12 w-12 text-gray-400"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {businessLicenseFile.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {(businessLicenseFile.size / 1024 / 1024).toFixed(2)}{" "}
-                          MB
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setBusinessLicenseFile(null);
-                        }}
-                        className="flex-shrink-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ) : (
-                    // 파일이 없을 때 업로드 안내
-                    <div className="text-center space-y-2">
-                      <svg
-                        className="mx-auto h-12 w-12 text-gray-400"
-                        stroke="currentColor"
-                        fill="none"
-                        viewBox="0 0 48 48"
-                      >
-                        <path
-                          d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <div className="text-gray-600">
-                        <span className="font-medium">클릭하여 파일 선택</span>{" "}
-                        또는 여기로 파일을 드래그하세요
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        PDF, JPG, PNG 파일 (최대 5MB)
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div
-                  {...getBizRootProps()}
-                  className="px-6 py-3 bg-lime-300 text-black border border-lime-200 rounded-lg hover:bg-lime-200 transition-colors font-medium cursor-pointer flex items-center whitespace-nowrap"
-                >
-                  <input {...getBizInputProps()} />
-                  파일첨부
-                </div>
-              </div>
-
-              {bizError && <p className="text-red-500 text-sm">{bizError}</p>}
-            </div>
-          </div> */}
 
           {/* 제출 버튼 */}
           <div className="flex justify-between gap-4 mt-6">
