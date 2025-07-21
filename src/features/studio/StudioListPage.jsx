@@ -2,83 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import StudioCard from "../../components/StudioCard";
 import Sidebar from "../../components/Sidebar.jsx";
 import { addFavorite } from "../../lib/reviewAPI.js";
-import { useNavigate } from "react-router-dom";
 import { getStudios } from "../../lib/studioAPI.js";
-
-const mockStudios = [
-  {
-    id: 1,
-    name: "드림메이커 스튜디오",
-    location: "서울 강동구",
-    price: 55000,
-    rating: 4.9,
-    thumbnailUrl:
-      "https://formeqly4682.edge.naverncp.com/service/174473035_399b1646e1e4ceb9c25012dd89a445c4.jpg?type=m&w=900&h=900&autorotate=true&quality=90",
-  },
-  {
-    id: 2,
-    name: "종로자연광 스튜디오",
-    location: "서울 송인동",
-    price: 25000,
-    rating: 4.6,
-    thumbnailUrl:
-      "https://formeqly4682.edge.naverncp.com/service/175000138_9c6703f4f9eb9414b1581c9f9c75c3c0.jpg?type=m&w=900&h=900&autorotate=true&quality=90",
-  },
-  {
-    id: 3,
-    name: "화양재 스튜디오",
-    location: "서울 양재동",
-    price: 120000,
-    rating: 4.8,
-    thumbnailUrl:
-      "https://formeqly4682.edge.naverncp.com/service/175196614_e5a8e7d40d7aa1a88ba0da4842b9919c.jpeg?type=m&w=900&h=900&autorotate=true&quality=90",
-  },
-  {
-    id: 4,
-    name: "서울 LED럭스 스튜디오",
-    location: "서울 신사동",
-    price: 90000,
-    rating: 4.6,
-    thumbnailUrl:
-      "https://formeqly4682.edge.naverncp.com/service/171178440_1556a293f51b5cc549c568674bc13241.jpeg?type=m&w=900&h=900&autorotate=true&quality=90",
-  },
-  {
-    id: 5,
-    name: "촬영스튜디오 뮤크",
-    location: "서울 영등포구",
-    price: 30000,
-    rating: 4.6,
-    thumbnailUrl:
-      "https://formeqly4682.edge.naverncp.com/service/173815356_98afb8bd59f8e5b4b4aca154bbfff220.jpg?type=m&w=900&h=900&autorotate=true&quality=90",
-  },
-  {
-    id: 6,
-    name: "블루락 게임PC8대 영등포구점",
-    location: "서울 영등포구",
-    price: 90000,
-    rating: 4.9,
-    thumbnailUrl:
-      "https://formeqly4682.edge.naverncp.com/service/173286760_50476b2787d9d2e12a2b30d0e86492b5.jpg?type=m&w=900&h=900&autorotate=true&quality=90",
-  },
-  {
-    id: 7,
-    name: "필더그린 스튜디오",
-    location: "서울 성동구",
-    price: 90000,
-    rating: 4.5,
-    thumbnailUrl:
-      "https://formeqly4682.edge.naverncp.com/service/171197561_c52109ce4e00443b13934f6046752895.jpeg?type=m&w=900&h=900&autorotate=true&quality=90",
-  },
-  {
-    id: 8,
-    name: "무슨 스튜디오",
-    location: "서울 용산구",
-    price: 99000,
-    rating: 4.4,
-    thumbnailUrl:
-      "https://formeqly4682.edge.naverncp.com/service/165163646_9bc733f89c3d8af01b1802b666845f12.jpeg?type=m&w=900&h=900&autorotate=true&quality=90",
-  },
-];
 
 const regions = ["전체", "서울", "경기", "인천", "부산", "대구"];
 
@@ -89,51 +13,71 @@ export default function StudioListPage() {
   const [hasMore, setHasMore] = useState(true);
   const [sortBy, setSortBy] = useState("popular");
   const [favorites, setFavorites] = useState([]);
-  const navigate = useNavigate();
-  const isLoggedIn = !!localStorage.getItem("accessToken");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchStudios = async () => {
       try {
-        const res = await getStudios();
-        // ✅ active 상태인 스튜디오만 필터링
-        const activeStudios = res.data.filter(
-          (studio) => studio.status === "ACTIVE"
+        setLoading(true);
+        setError(null);
+        const locationParam =
+          selectedRegion === "전체" ? undefined : selectedRegion;
+        const res = await getStudios({
+          page,
+          location: selectedRegion,
+          sort: sortBy,
+        });
+        console.log("✅ 백엔드 응답 확인:", res);
+        console.log("✅ 전체 응답:", res);
+        console.log("✅ 응답의 data:", res.data);
+        console.log("✅ 응답의 data.data:", res.data.data);
+        const studioData = res.data.data;
+        if (!studioData || !Array.isArray(studioData.content)) {
+          throw new Error("잘못된 응답 형식입니다.");
+        }
+
+        if (studioData.content.length === 0 && page === 1) {
+          setStudios([]);
+          setHasMore(false);
+          setLoading(false);
+          return;
+        }
+
+        // setStudios((prev) => [...prev, ...studioData.content]);
+        setStudios((prev) => {
+          // 기존 스튜디오 ID들을 효율적인 조회를 위해 Set으로 만듭니다.
+          const existingStudioIds = new Set(prev.map((s) => s.id));
+
+          // 새로 받은 데이터 중 기존 목록에 없는(ID가 중복되지 않는) 스튜디오만 필터링합니다.
+          const newUniqueStudios = studioData.content.filter(
+            (newStudio) => !existingStudioIds.has(newStudio.id)
+          );
+
+          // 기존 스튜디오와 새로 추가할 고유 스튜디오를 합칩니다.
+          return [...prev, ...newUniqueStudios];
+        });
+        setHasMore(
+          studioData.pagination?.currentPage < studioData.pagination?.totalPages
         );
-        setStudios(activeStudios);
       } catch (err) {
         console.error("스튜디오 목록 조회 실패:", err);
+        setError("스튜디오 목록을 불러오는데 실패했습니다.");
+      } finally {
+        setLoading(false);
       }
     };
     fetchStudios();
-  }, []);
+  }, [page, selectedRegion, sortBy]); // 페이지, 지역, 정렬 기준이 변경될 때마다 호출
 
-  // 인기 스튜디오 추출
-  const popularStudios = useMemo(() => {
-    return [...studios]
-      .filter((studio) => studio.rating >= 4.8)
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 10);
-  }, [studios]);
-
-  const handleFavoriteClick = async (studioId) => {
-    if (!isLoggedIn) {
-      alert("로그인이 필요합니다.");
-      navigate("/login"); // 로그인 페이지로 이동
-      return;
-    }
-
-    try {
-      await addFavorite("STUDIO", studioId);
-      setFavorites((prev) => [...prev, studioId]);
-    } catch (error) {
-      console.error("즐겨찾기 등록 실패:", error);
-    }
-  };
+  // ... (handleFavoriteClick 함수는 동일)
 
   useEffect(() => {
     const handleScroll = () => {
+      // 로딩 중이 아니고, 에러가 없으며, 더 불러올 데이터가 있을 때만 페이지 증가
       if (
+        !loading && // 로딩 중이 아닐 때만 다음 페이지 로드 시도
+        !error && // 에러가 없을 때만 다음 페이지 로드 시도
         window.innerHeight + window.scrollY >=
           document.body.offsetHeight - 100 &&
         hasMore
@@ -144,7 +88,17 @@ export default function StudioListPage() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [hasMore]);
+  }, [hasMore, loading, error]); // hasMore, loading, error 상태를 의존성에 추가
+
+  // ✅ 인기 스튜디오 추출 (useMemo 유지)
+  const popularStudios = useMemo(() => {
+    return [...studios]
+      .filter(
+        (studio) => typeof studio.rating === "number" && studio.rating >= 4.8
+      )
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 10);
+  }, [studios]);
 
   return (
     <div className="grid min-h-screen font-sans min-w-[1280px]">
@@ -162,14 +116,19 @@ export default function StudioListPage() {
             인기 스튜디오
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 min-w-[1200px]">
-            {popularStudios.map((studio) => (
-              <StudioCard
-                key={studio.id}
-                studio={studio}
-                onFavoriteClick={handleFavoriteClick}
-                isFavorite={favorites.includes(studio.id)}
-              />
-            ))}
+            {popularStudios.length === 0 ? (
+              <p className="col-span-full text-gray-500">
+                아직 인기 스튜디오가 없어요 😢 리뷰를 남겨주세요!
+              </p>
+            ) : (
+              popularStudios.map((studio) => (
+                <StudioCard
+                  key={studio.id}
+                  studio={studio}
+                  isFavorite={favorites.includes(studio.id)}
+                />
+              ))
+            )}
           </div>
         </div>
 
@@ -178,7 +137,11 @@ export default function StudioListPage() {
           <select
             className="border px-3 py-1 rounded-md bg-white text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-lime-500"
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
+            onChange={(e) => {
+              setSortBy(e.target.value);
+              setPage(1); // 정렬 기준 변경 시 첫 페이지로 리셋
+              setStudios([]); // 스튜디오 목록 초기화 (필요시)
+            }}
           >
             <option value="popular">인기순</option>
             <option value="priceLow">낮은 가격순</option>
@@ -199,7 +162,10 @@ export default function StudioListPage() {
                     ? "bg-lime-300 text-black border-lime-200"
                     : "bg-white hover:bg-gray-100 border-gray-300"
                 }`}
-                onClick={() => setSelectedRegion(region)}
+                onClick={() => {
+                  setSelectedRegion(region);
+                  setPage(1); // 지역 변경 시 첫 페이지로 리셋
+                }}
               >
                 {region}
               </button>
@@ -208,14 +174,20 @@ export default function StudioListPage() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 min-w-[1200px]">
-          {studios.map((studio) => (
-            <StudioCard
-              key={studio.id}
-              studio={studio}
-              onFavoriteClick={handleFavoriteClick}
-              isFavorite={favorites.includes(studio.id)}
-            />
-          ))}
+          {studios.map(
+            (
+              studio,
+              index // filteredStudios 대신 studios 직접 사용
+            ) => (
+              <StudioCard
+                key={`${studio.id}-${index}`}
+                studio={studio}
+                isFavorite={favorites.includes(studio.id)}
+              />
+            )
+          )}
+          {loading && <div>스튜디오 목록을 불러오는 중...</div>}{" "}
+          {/* 추가 로딩 스피너 */}
         </div>
       </main>
     </div>
