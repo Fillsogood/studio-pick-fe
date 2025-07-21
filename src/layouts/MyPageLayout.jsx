@@ -2,11 +2,13 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { logout } from "../lib/authAPI";
 import { getMyProfile } from "../lib/userAPI";
+import { useAuth } from "../hooks/useAuth";
 
 const MyPageLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState(null);
+  const { logout: clientLogout } = useAuth();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -16,12 +18,12 @@ const MyPageLayout = () => {
       } catch (e) {
         console.error("프로필 조회 실패", e);
 
-          // ✅ 세션 만료 시 강제 로그아웃 처리
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("nickname");
-      localStorage.removeItem("loginType");
-      navigate("/");
-      window.location.reload(); // Header에 있는 로그인 상태도 초기화됨
+        // ✅ 세션 만료 시 강제 로그아웃 처리
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("nickname");
+        localStorage.removeItem("loginType");
+        navigate("/");
+        window.location.reload(); // Header에 있는 로그인 상태도 초기화됨
       }
     };
 
@@ -34,27 +36,26 @@ const MyPageLayout = () => {
   ];
 
   const handleLogout = async () => {
-    const loginType = localStorage.getItem("loginType"); // "kakao" or "local"
+    const loginType = localStorage.getItem("loginType");
 
     if (loginType === "kakao") {
-      // 카카오 계정 로그아웃까지
       const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
       const LOGOUT_REDIRECT_URI = import.meta.env
         .VITE_KAKAO_LOGOUT_REDIRECT_URI;
 
+      // ✅ 카카오 로그아웃 시에도 클라이언트 상태 초기화
+      clientLogout(); // Recoil 상태 초기화
       const kakaoLogoutUrl = `https://kauth.kakao.com/oauth/logout?client_id=${REST_API_KEY}&logout_redirect_uri=${LOGOUT_REDIRECT_URI}`;
       window.location.href = kakaoLogoutUrl;
     } else {
-      // 일반 로그인: 서버 로그아웃만 처리
       try {
-        await logout(); // 서버에서 쿠키 삭제
+        await logout(); // 서버 로그아웃
       } catch (e) {
         console.error("로그아웃 실패:", e);
       } finally {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("loginType"); // optional
+        clientLogout(); // Recoil 상태 초기화
         navigate("/");
-        setTimeout(() => window.location.reload(), 100);
+        setTimeout(() => window.location.reload(), 100); // 헤더 리렌더 보장
       }
     }
   };
