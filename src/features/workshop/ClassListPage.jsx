@@ -40,7 +40,7 @@ const ClassListPage = () => {
             placeholder="클래스 이름으로 검색"
             className="border border-gray-300 rounded-md px-3 py-1 w-[360px]"
           />
-          <button className="bg-lime-400 text-white text-sm px-4 py-1.5 rounded-md">필터 적용</button>
+          <button className="bg-black text-white text-sm px-4 py-1.5 rounded-md">필터 적용</button>
         </div>
       </div>
 

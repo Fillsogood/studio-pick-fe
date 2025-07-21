@@ -58,7 +58,7 @@ const Sidebar = () => {
             to={item.path}
             className={`flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100 transition ${
               isActivePath(item.path)
-                ? "bg-neutral-300 font-semibold"
+                ? "bg-WarmBeige-300 font-semibold"
                 : "text-gray-700"
             }`}
           >
