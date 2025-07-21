@@ -6,6 +6,7 @@ import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import { FaCheckCircle, FaExclamationTriangle, FaHeart } from "react-icons/fa";
 import { useAuth } from "../../hooks/useAuth";
+import ReservationCreateModal from "../../components/ReservationCreateModal";
 
 export default function StudioDetailPage() {
   const { studioId } = useParams();
@@ -20,8 +21,11 @@ export default function StudioDetailPage() {
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewsError, setReviewsError] = useState(null);
+  const [reservationModalOpen, setReservationModalOpen] = useState(false);
+  const [pendingReservation, setPendingReservation] = useState(null); // 예약 성공 시 결제 모달로 전달
+
   const handleReservation = () => {
-    alert("예약 기능은 아직 준비 중이에요");
+    setReservationModalOpen(true);
   };
   const handlePayment = () => {
     alert("결제 기능은 아직 준비 중이에요");
@@ -56,6 +60,14 @@ export default function StudioDetailPage() {
     }
   };
 
+  // 예약 성공 시 결제 모달로 연결 (임시: alert)
+  const handleReservationSuccess = (reservationData) => {
+    setReservationModalOpen(false);
+    setPendingReservation(reservationData);
+    alert("예약이 생성되었습니다! 결제 모달로 연결 예정");
+    // TODO: 결제 모달 띄우기
+  };
+
   useEffect(() => {
     const fetchStudio = async () => {
       try {
@@ -86,6 +98,12 @@ export default function StudioDetailPage() {
         console.log("🔍 요청 URL:", `/api/reviews/studio/${studioId}`);
         const res = await getStudioReviews(studioId, { page: 1, size: 10 });
         console.log("✅ 스튜디오 리뷰 백엔드 응답:", res);
+        console.log("✅ 리뷰 데이터:", res.data?.data);
+        console.log("✅ 첫 번째 리뷰:", res.data?.data?.[0]);
+        console.log(
+          "✅ 첫 번째 리뷰의 imageUrls:",
+          res.data?.data?.[0]?.imageUrls
+        );
         setReviews(res.data?.data || []);
       } catch (err) {
         console.error("스튜디오 리뷰 오류:", err);
@@ -217,12 +235,6 @@ export default function StudioDetailPage() {
                 >
                   예약하기
                 </button>
-                <button
-                  onClick={handlePayment}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
-                  결제하기
-                </button>
               </div>
             </div>
           </div>
@@ -318,26 +330,43 @@ export default function StudioDetailPage() {
                 </p>
 
                 {/* 리뷰 이미지들 */}
-                {review.imageUrls && review.imageUrls.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2">
-                    {review.imageUrls.map((imageUrl, index) => (
-                      <img
-                        key={index}
-                        src={imageUrl}
-                        alt={`리뷰 이미지 ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-lg"
-                        onError={(e) => {
-                          e.target.src = "/default-image.jpg";
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
+                {(() => {
+                  console.log(
+                    "리뷰 ID:",
+                    review.id,
+                    "imageUrls:",
+                    review.imageUrls
+                  );
+                  return review.imageUrls && review.imageUrls.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2">
+                      {review.imageUrls.map((imageUrl, index) => (
+                        <img
+                          key={index}
+                          src={imageUrl}
+                          alt={`리뷰 이미지 ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg"
+                          onError={(e) => {
+                            console.log("이미지 로드 실패:", imageUrl);
+                            e.target.src = "/default-image.jpg";
+                          }}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-gray-400 text-sm">이미지 없음</div>
+                  );
+                })()}
               </div>
             ))}
           </div>
         )}
       </div>
+      <ReservationCreateModal
+        isOpen={reservationModalOpen}
+        onClose={() => setReservationModalOpen(false)}
+        studio={studio}
+        onReservationSuccess={handleReservationSuccess}
+      />
     </div>
   );
 }
