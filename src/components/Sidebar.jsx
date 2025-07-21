@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   Home,
   Camera,
@@ -23,7 +23,7 @@ const menuItems = [
   {
     label: "스튜디오 등록",
     icon: <PlusSquare size={20} />,
-    path: "/studio/apply",
+    path: "/studios/rental",
   },
   {
     label: "클래스 등록",
@@ -33,6 +33,21 @@ const menuItems = [
 ];
 
 const Sidebar = () => {
+  const location = useLocation();
+
+  const isActivePath = (itemPath) => {
+    if (itemPath === "/") {
+      // 홈은 정확히 일치할 때만 활성화
+      return location.pathname === "/";
+    }
+    if (itemPath === "/studios") {
+      // /studios는 정확히 일치할 때만 활성화
+      return location.pathname === "/studios";
+    }
+    // 다른 경로들은 startsWith로 확인
+    return location.pathname.startsWith(itemPath);
+  };
+
   return (
     <aside className="w-60 h-screen fixed top-16 left-0 bg-white border-r pt-6 px-4 z-40">
       <nav className="flex flex-col gap-3">
@@ -40,12 +55,11 @@ const Sidebar = () => {
           <NavLink
             key={item.label}
             to={item.path}
-            end
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100 transition ${
-                isActive ? "bg-lime-200 font-semibold" : "text-gray-700"
-              }`
-            }
+            className={`flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100 transition ${
+              isActivePath(item.path)
+                ? "bg-lime-200 font-semibold"
+                : "text-gray-700"
+            }`}
           >
             {item.icon}
             <span>{item.label}</span>
