@@ -129,7 +129,12 @@ export default function MyStudioManagePage() {
                 </button>
               )}
               {studio.status === "ACTIVE" && (
-                <button className="bg-lime-300 hover:bg-lime-200 text-black px-3 py-1 rounded">
+                <button
+                  className="bg-lime-300 hover:bg-lime-200 text-black px-3 py-1 rounded"
+                  onClick={() =>
+                    navigate(`/account/studios/${studio.id}/setup`)
+                  }
+                >
                   수정
                 </button>
               )}
@@ -139,7 +144,6 @@ export default function MyStudioManagePage() {
               >
                 삭제
               </button>
-              <span className="text-gray-400">{studio.status}</span>
             </div>
           </div>
         ))}

@@ -217,9 +217,9 @@ export default function StudioSetupPage() {
         closeTime,
       })),
     };
-  
+
     console.log("✅ 보낼 payload", payload); // 👈 디버깅용
-  
+
     await updateStudio(studioId, payload);
     navigate("/account/studios");
   };
@@ -561,12 +561,13 @@ export default function StudioSetupPage() {
       </div>
 
       <div className="flex justify-end mt-8">
+        {console.log("현재 스튜디오 상태:", studio?.status)} {/* 추가 */}
         <button
           onClick={handleActivate}
           type="submit"
           className="bg-lime-300 text-black border border-lime-200 px-6 py-3 rounded hover:bg-lime-200 transition-colors font-medium"
         >
-          개설 완료
+          {studio?.status === "ACTIVE" ? "완료" : "완료"}
         </button>
       </div>
     </div>
