@@ -50,7 +50,7 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-60 h-screen fixed top-16 left-0 bg-white border-r pt-6 px-4 z-40">
+    <aside className="w-60 h-screen fixed top-16 left-0 bg-neutral-100  border-r pt-6 px-4 z-40">
       <nav className="flex flex-col gap-3">
         {menuItems.map((item) => (
           <NavLink
@@ -58,7 +58,7 @@ const Sidebar = () => {
             to={item.path}
             className={`flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100 transition ${
               isActivePath(item.path)
-                ? "bg-lime-200 font-semibold"
+                ? "bg-neutral-300 font-semibold"
                 : "text-gray-700"
             }`}
           >

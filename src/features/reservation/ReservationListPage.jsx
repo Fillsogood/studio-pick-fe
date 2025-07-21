@@ -204,7 +204,7 @@ const ReservationListPage = () => {
         <button
           key="review"
           onClick={() => handleWriteReview(reservation)}
-          className="bg-lime-300 hover:bg-lime-200 text-black px-4 py-2 rounded text-sm font-medium transition-colors text-center w-24 h-9 flex items-center justify-center"
+          className="bg-neutral-100 hover:bg-neutral-300 text-black px-4 py-2 rounded text-sm font-medium transition-colors text-center w-24 h-9 flex items-center justify-center"
         >
           리뷰 작성
         </button>
@@ -215,7 +215,7 @@ const ReservationListPage = () => {
         <button
           key="rebook"
           onClick={() => handleRebook(reservation)}
-          className="bg-lime-300 hover:bg-lime-200 text-black px-4 py-2 rounded text-sm font-medium transition-colors text-center w-24 h-9 flex items-center justify-center"
+          className="bg-neutral-100 hover:bg-neutral-300 text-black px-4 py-2 rounded text-sm font-medium transition-colors text-center w-24 h-9 flex items-center justify-center"
         >
           예약하기
         </button>
