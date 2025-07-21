@@ -24,6 +24,10 @@ import OAuthKakaoLogoutCallbackPage from "../features/auth/OAuthKakaoLogoutCallb
 
 import ResetPasswordPage from "../features/user/ResetPasswordPage.jsx";
 
+// 결제 관련 페이지
+import PaymentSuccessPage from "../pages/PaymentSuccessPage";
+import PaymentFailPage from "../pages/PaymentFailPage";
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -35,6 +39,10 @@ const AppRoutes = () => {
         path="/kakao/logout/callback"
         element={<OAuthKakaoLogoutCallbackPage />}
       />
+
+      {/* 결제 관련 페이지 */}
+      <Route path="/payment/success" element={<PaymentSuccessPage />} />
+      <Route path="/payment/fail" element={<PaymentFailPage />} />
 
       {/* 메인 레이아웃 */}
       <Route element={<MainLayout />}>

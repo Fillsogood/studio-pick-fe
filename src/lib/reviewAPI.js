@@ -1,16 +1,30 @@
 // 리뷰 관련 API 함수들
 import axiosInstance from "./axiosInstance";
 
-// 리뷰 작성 (메인 API)
+// 리뷰 이미지 업로드 (즉시 S3 업로드)
+export const uploadReviewImages = (files) => {
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append("images", file);
+  });
+
+  return axiosInstance.post("/api/reviews/images", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+// 리뷰 작성 (메인 API) - JSON 사용
 export const createReview = (reviewData) => {
-  // 백엔드 API 스펙에 맞게 imageUrls를 문자열로 처리
   const requestData = {
     type: reviewData.type,
     targetId: reviewData.targetId,
     rating: reviewData.rating,
     comment: reviewData.comment,
-    imageUrls: reviewData.imageUrls || "", // 이미 문자열이거나 빈 문자열
+    imageUrls: reviewData.imageUrls || [], // S3 URL 리스트
   };
+  
   return axiosInstance.post("/api/reviews", requestData);
 };
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { createReview } from "../../lib/reviewAPI";
+import { createReview, uploadReviewImages } from "../../lib/reviewAPI";
+import { getReservationDetail } from "../../lib/reservationAPI";
 
 const ReviewWritePage = () => {
   const { reservationId } = useParams();
@@ -9,7 +10,8 @@ const ReviewWritePage = () => {
   const [reservation, setReservation] = useState(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState([]); // S3 URL들
+  const [uploading, setUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef(null);
@@ -36,9 +38,50 @@ const ReviewWritePage = () => {
     setIsLoading(false);
   }, [searchParams, navigate]);
 
-  // 이미지 파일 선택 처리
-  const handleImageSelect = (event) => {
+  // 예약 상세 정보 조회 (스튜디오/워크샵 ID 포함)
+  useEffect(() => {
+    const fetchReservationDetail = async () => {
+      if (!reservation?.id) return;
+
+      try {
+        const response = await getReservationDetail(reservation.id);
+        const detailData = response.data?.data;
+        console.log("예약 상세 정보:", detailData);
+
+        if (detailData) {
+          setReservation((prev) => ({
+            ...prev,
+            ...detailData,
+          }));
+        }
+      } catch (error) {
+        console.error("예약 상세 정보 조회 실패:", error);
+      }
+    };
+
+    fetchReservationDetail();
+  }, [reservation?.id]);
+
+  // 컴포넌트 언마운트 시 URL 정리
+  useEffect(() => {
+    return () => {
+      // 생성된 URL들을 정리
+      images.forEach((url) => {
+        if (url.startsWith("blob:")) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [images]);
+
+  // 이미지 파일 선택 처리 (즉시 S3 업로드)
+  const handleImageSelect = async (event) => {
     const files = Array.from(event.target.files);
+    await uploadFiles(files);
+  };
+
+  const uploadFiles = async (files) => {
+    if (!files.length) return;
 
     // 파일 개수 제한 (최대 5장)
     if (images.length + files.length > 5) {
@@ -65,9 +108,33 @@ const ReviewWritePage = () => {
       alert("이미지 파일만 업로드 가능합니다.");
     }
 
-    // 이미지 URL 생성
-    const newImageUrls = imageFiles.map((file) => URL.createObjectURL(file));
-    setImages((prev) => [...prev, ...newImageUrls]);
+    if (imageFiles.length === 0) return;
+
+    setUploading(true);
+    try {
+      const res = await uploadReviewImages(imageFiles);
+      const urls = res.data?.data;
+
+      console.log("📦 업로드 응답:", urls);
+
+      if (!urls) {
+        alert("업로드 응답이 비어있습니다.");
+        return;
+      }
+
+      if (Array.isArray(urls)) {
+        setImages((prev) => [...prev, ...urls]);
+      } else if (typeof urls === "string") {
+        setImages((prev) => [...prev, urls]);
+      } else {
+        console.error("예상치 못한 형식의 응답입니다:", urls);
+      }
+    } catch (err) {
+      console.error("업로드 실패", err);
+      alert("이미지 업로드 중 오류가 발생했습니다.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   // 이미지 제거
@@ -94,16 +161,36 @@ const ReviewWritePage = () => {
 
     setSubmitting(true);
     try {
+      // targetId 유효성 검사 - 예약 상세 정보에서 studio/workshop 객체 사용
+      let targetId = null;
+
+      if (isWorkshop) {
+        targetId = reservation.workshop?.id;
+      } else {
+        targetId = reservation.studio?.id;
+      }
+
+      console.log("예약 정보:", reservation); // 디버깅용
+      console.log("isWorkshop:", isWorkshop); // 디버깅용
+      console.log("targetId:", targetId); // 디버깅용
+      console.log("reservation.studio:", reservation.studio); // 디버깅용
+      console.log("reservation.workshop:", reservation.workshop); // 디버깅용
+
+      if (!targetId) {
+        alert("예약 정보에서 ID를 찾을 수 없습니다. 콘솔을 확인해주세요.");
+        return;
+      }
+
       const reviewData = {
         type: isWorkshop ? "workshop" : "studio",
-        targetId: isWorkshop ? reservation.workshopId : reservation.studioId,
+        targetId: targetId,
         rating: rating,
         comment: comment.trim(),
-        imageUrls: images.length > 0 ? images.join(",") : "", // 백엔드 API 스펙에 맞게 문자열로 전송
+        imageUrls: images, // S3 URL 리스트
       };
 
       console.log("리뷰 데이터:", reviewData); // 디버깅용
-      console.log("예약 정보:", reservation); // 디버깅용
+      console.log("이미지 URL들:", reviewData.imageUrls); // 디버깅용
 
       const response = await createReview(reviewData);
       console.log("리뷰 작성 응답:", response); // 디버깅용
@@ -299,7 +386,7 @@ const ReviewWritePage = () => {
                 {images.map((imageUrl, index) => (
                   <div key={index} className="relative">
                     <img
-                      src={imageUrl}
+                      src={encodeURI(imageUrl)}
                       alt={`업로드 이미지 ${index + 1}`}
                       className="w-full h-24 object-cover rounded-lg"
                     />
@@ -317,14 +404,23 @@ const ReviewWritePage = () => {
             {/* 파일 업로드 영역 */}
             <div
               className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => !uploading && fileInputRef.current?.click()}
             >
               <div className="text-gray-500">
-                <div className="text-3xl mb-2">📷</div>
-                <p>사진을 추가해 주세요</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  최대 5장, 10MB 이하
-                </p>
+                {uploading ? (
+                  <>
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-2"></div>
+                    <p>업로드 중...</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-3xl mb-2">📷</div>
+                    <p>사진을 추가해 주세요</p>
+                    <p className="text-sm text-gray-400 mt-1">
+                      최대 5장, 10MB 이하
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 

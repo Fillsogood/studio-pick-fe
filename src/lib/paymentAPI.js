@@ -2,7 +2,11 @@ import axiosInstance from "./axiosInstance";
 
 // 결제 요청
 export const requestPayment = (data) =>
-  axiosInstance.post("/api/payments", data);
+  axiosInstance.post("/api/payments/request", data);
+
+// 결제 승인
+export const confirmPayment = (data) =>
+  axiosInstance.post("/api/payments/confirm", data);
 
 // 결제 내역 조회
 export const getPaymentHistory = (params) =>
@@ -32,3 +36,11 @@ export const getReservationRefundHistory = (reservationId) =>
 // 환불 내역 상세 조회
 export const getRefundDetail = (refundId) =>
   axiosInstance.get(`/api/v1/refunds/${refundId}`);
+
+// 결제 상태 조회
+export const getPaymentStatus = (paymentKey) =>
+  axiosInstance.get(`/api/payments/status/${paymentKey}`);
+
+// 결제 취소
+export const cancelPayment = (paymentKey, data) =>
+  axiosInstance.post(`/api/payments/${paymentKey}/cancel`, data);
