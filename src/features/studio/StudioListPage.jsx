@@ -21,11 +21,9 @@ export default function StudioListPage() {
       try {
         setLoading(true);
         setError(null);
-        const locationParam =
-          selectedRegion === "전체" ? undefined : selectedRegion;
         const res = await getStudios({
           page,
-          location: selectedRegion,
+          location: selectedRegion === "전체" ? undefined : selectedRegion,
           sort: sortBy,
         });
         console.log("✅ 백엔드 응답 확인:", res);
