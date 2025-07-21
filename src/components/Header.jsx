@@ -16,7 +16,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="w-full h-16 bg-neutral-100  flex items-center justify-between px-6 shadow-md fixed top-0 z-50">
+      <header className="w-full h-16 bg-WarmBeige-300  flex items-center justify-between px-6 shadow-md fixed top-0 z-50">
         {/* 로고 */}
         <Link to="/" className="flex items-center">
           <img

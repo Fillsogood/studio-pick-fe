@@ -54,7 +54,7 @@ const ClassCard = ({ data }) => {
             <span className="font-bold text-black">{price.toLocaleString()}원</span>
           </div>
           <button
-            className="text-base bg-gray-100 border px-3 py-1.5 rounded hover:bg-gray-200"
+            className="text-base bg-WarmBeige-300 border px-3 py-1.5 rounded hover:bg-WarmBeige-200"
             onClick={(e) => {
               e.stopPropagation(); // 카드 클릭 방지
               navigate(`/classes/${id}/reserve`);

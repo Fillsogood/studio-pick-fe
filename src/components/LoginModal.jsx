@@ -114,7 +114,7 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
             <button
               type="button"
               onClick={handleForgotPassword}
-              className="text-lime-400 hover:underline"
+              className="text-blue-500 hover:underline"
             >
               비밀번호를 잊으셨나요?
             </button>
@@ -124,7 +124,7 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
 
           <button
             type="submit"
-            className="w-full bg-lime-300 hover:bg-lime-200 text-black font-semibold py-2 rounded-md"
+            className="w-full bg-WarmBeige-300 hover:bg-WarmBeige-200 text-black font-semibold py-2 rounded-md"
           >
             로그인
           </button>

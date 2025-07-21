@@ -35,7 +35,7 @@ const ForgotPasswordPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
       <div className="w-full max-w-md">
-        <h3 className="text-sm text-lime-600 font-semibold mb-3">비밀번호 찾기</h3>
+        <h3 className="text-sm text-black font-semibold mb-3">비밀번호 찾기</h3>
         <h1 className="text-lg font-bold mb-6 leading-tight">
           비밀번호 변경 링크를 받을<br />
           이메일을 입력해 주세요
@@ -63,7 +63,7 @@ const ForgotPasswordPage = () => {
           <button
             type="submit"
             disabled={isLoading} // 전송 중일 땐 버튼 비활성화
-            className="w-full py-2 rounded-md font-semibold text-black bg-lime-400 hover:bg-lime-300 transition"
+            className="w-full py-2 rounded-md font-semibold text-black bg-WarmBeige-300 hover:bg-WarmBeige-200 transition"
           >
             {isLoading ? '메일 전송 중...' : '메일 전송하기'}
           </button>
