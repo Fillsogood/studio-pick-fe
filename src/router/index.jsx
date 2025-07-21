@@ -22,6 +22,7 @@ import ReviewEditPage from "../features/review/ReviewEditPage";
 
 import OAuthKakaoCallbackPage from "../features/auth/OAuthKakaoCallbackPage.jsx";
 import OAuthKakaoLogoutCallbackPage from "../features/auth/OAuthKakaoLogoutCallbackPage.jsx";
+import ClassListPage from "../features/workshop/ClassListPage";
 
 import ResetPasswordPage from "../features/user/ResetPasswordPage.jsx";
 
@@ -63,6 +64,7 @@ const AppRoutes = () => {
         <Route path="/studios/rental" element={<StudioApplyPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/classes/apply" element={<ClassApplyPage />} />
+        <Route path="/classes" element={<ClassListPage />} />
         {/* 다른 페이지 추가 가능 */}
 
         {/* 마이페이지 영역 */}
