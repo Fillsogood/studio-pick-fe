@@ -5,6 +5,8 @@ const ReservationCreateModal = ({
   isOpen,
   onClose,
   studio,
+  workshop,
+  type = "studio", // "studio" 또는 "workshop"
   onReservationSuccess,
 }) => {
   const [reservationDate, setReservationDate] = useState("");

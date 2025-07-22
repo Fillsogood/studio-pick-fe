@@ -254,6 +254,33 @@ const ReservationListPage = () => {
         }}
       />
 
+      {/* 로그아웃 상태일 때 중앙 경고 메시지 */}
+      {!isLoggedIn && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-40">
+          <div className="bg-white rounded-2xl shadow-2xl p-10 text-center max-w-sm mx-4 relative">
+            {/* X 버튼 */}
+            <Link
+              to="/"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-3">
           {activeTab === "studio" ? "스튜디오 예약 내역" : "공방 예약 내역"}
