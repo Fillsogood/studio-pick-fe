@@ -6,15 +6,14 @@ const DetailModal = ({ item, onClose, onApprove, onReject, loading }) => {
 
   if (!item) return null;
 
-  const isStudio = !!item.ownerInfo;
+  const isStudio = !!item.Location;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded shadow-lg w-96">
         <h2 className="text-lg font-semibold mb-4">{isStudio ? `${item.name} 상세보기` : `${item.title} 상세보기`}</h2>
-        <p><strong>대표자:</strong> {isStudio ? (item.ownerInfo?.name || '알 수 없음') : (item.instructorName || '알 수 없음')}</p>
-        {isStudio && <p><strong>카테고리:</strong> {item.category || '기타'}</p>}
-        <p><strong>위치:</strong> {isStudio ? (item.location || '알 수 없음') : (item.studioName || '알 수 없음')}</p>
+        <p><strong>대표자:</strong> {isStudio ? (item.ownerName|| '알 수 없음') : (item.instructorName || '알 수 없음')}</p>
+        <p><strong>위치:</strong> {isStudio ? (item.Location || '알 수 없음') : (item.address || '알 수 없음')}</p>
         <p><strong>등록일:</strong> {formatDate(item.createdAt)}</p>
         <p><strong>상태:</strong> {item.status}</p>
         <textarea
