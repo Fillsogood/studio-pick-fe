@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { Shield, User, Lock, Unlock } from 'lucide-react';
-import { Card, Button, Input } from '../components/common';
-import { useNavigate } from 'react-router-dom';
-import { adminAuthAPI } from '@/lib/admin/adminauthAPI';
+import React, { useState } from "react";
+import { Shield, User, Lock, Unlock } from "lucide-react";
+import { Card, Button, Input } from "../components/common";
+import { useNavigate } from "react-router-dom";
+import { adminAuthAPI } from "@/lib/admin/adminauthAPI";
 
 const AdminLoginPage = () => {
   const [credentials, setCredentials] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -19,18 +19,17 @@ const AdminLoginPage = () => {
     try {
       // 1️⃣ 로그인 요청
       const response = await adminAuthAPI.login(credentials);
-      console.log('로그인 성공:', response);
-  
+      console.log("로그인 성공:", response);
+
       // 2️⃣ 권한 확인 (쿠키에서 꺼내와 확인)
       const result = await adminAuthAPI.verifyAdminAuth();
-      console.log('권한 확인 결과:', result);
-  
+      console.log("권한 확인 결과:", result);
+
       // 3️⃣ 대시보드로 이동
-      navigate('/admin/dashboard');
-  
+      navigate("/admin/dashboard");
     } catch (error) {
-      console.error('로그인 또는 권한 확인 실패:', error);
-      alert(error.message || '로그인에 실패했습니다.');
+      console.error("로그인 또는 권한 확인 실패:", error);
+      alert(error.message || "로그인에 실패했습니다.");
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +86,9 @@ const AdminLoginPage = () => {
                   type="checkbox"
                   className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
                 />
-                <span className="ml-2 text-sm text-gray-600">로그인 상태 유지</span>
+                <span className="ml-2 text-sm text-gray-600">
+                  로그인 상태 유지
+                </span>
               </label>
               <button
                 type="button"

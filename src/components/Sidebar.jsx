@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   Home,
   Camera,
@@ -23,7 +23,7 @@ const menuItems = [
   {
     label: "스튜디오 등록",
     icon: <PlusSquare size={20} />,
-    path: "/studio/apply",
+    path: "/studios/rental",
   },
   {
     label: "클래스 등록",
@@ -33,18 +33,34 @@ const menuItems = [
 ];
 
 const Sidebar = () => {
+  const location = useLocation();
+
+  const isActivePath = (itemPath) => {
+    const pathname = location.pathname;
+
+    // 정확히 일치해야 하는 항목들
+    if (itemPath === "/") return pathname === "/";
+    if (itemPath === "/studios") return pathname === "/studios";
+    if (itemPath === "/classes") return pathname === "/classes";
+    if (itemPath === "/classes/apply") return pathname === "/classes/apply";
+    if (itemPath === "/studios/rental") return pathname === "/studios/rental";
+
+    // 그 외는 startsWith 허용 (예: /gallery/1)
+    return pathname.startsWith(itemPath);
+  };
+
   return (
-    <aside className="w-60 h-screen fixed top-16 left-0 bg-white border-r pt-6 px-4 z-40">
+    <aside className="w-60 h-screen fixed top-16 left-0 bg-neutral-100  border-r pt-6 px-4 z-40">
       <nav className="flex flex-col gap-3">
         {menuItems.map((item) => (
           <NavLink
             key={item.label}
             to={item.path}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100 transition ${
-                isActive ? "bg-lime-200 font-semibold" : "text-gray-700"
-              }`
-            }
+            className={`flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100 transition ${
+              isActivePath(item.path)
+                ? "bg-WarmBeige-300 font-semibold"
+                : "text-gray-700"
+            }`}
           >
             {item.icon}
             <span>{item.label}</span>

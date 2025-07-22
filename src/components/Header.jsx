@@ -1,32 +1,23 @@
-import { useState, useEffect } from "react";
+// src/components/Header.jsx
+
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { User2 } from "lucide-react";
 import LoginModal from "../components/LoginModal";
+import { useAuth } from "../hooks/useAuth";
 
 const Header = () => {
   const navigate = useNavigate();
-
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [nickname, setNickname] = useState("");
 
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    const nickname = localStorage.getItem("nickname");
-
-    if (token && nickname) {
-      setIsLoggedIn(true);
-      setNickname(nickname);
-    } else {
-      setIsLoggedIn(false);
-      setNickname("");
-    }
-  }, [location.pathname]);
+  const { isLoggedIn, user, logout } = useAuth(); 
+  const nickname = user?.nickname || "게스트";
 
   return (
     <>
-      <header className="w-full h-16 bg-lime-300 flex items-center justify-between px-6 shadow-md fixed top-0 z-50">
+      <header className="w-full h-16 bg-WarmBeige-300  flex items-center justify-between px-6 shadow-md fixed top-0 z-50">
+        {/* 로고 */}
         <Link to="/" className="flex items-center">
           <img
             src={logo}
@@ -35,6 +26,7 @@ const Header = () => {
           />
         </Link>
 
+        {/* 검색창 */}
         <div className="flex-1 px-6">
           <input
             type="text"
@@ -43,6 +35,7 @@ const Header = () => {
           />
         </div>
 
+        {/* 로그인/닉네임 */}
         <div className="flex items-center gap-2 text-gray-600 cursor-pointer">
           <User2 size={20} />
           {isLoggedIn ? (
@@ -50,7 +43,7 @@ const Header = () => {
               className="text-sm font-medium hover:underline"
               onClick={() => navigate("/account/profile")}
             >
-              {nickname || "게스트"}
+              {nickname}
             </span>
           ) : (
             <span
@@ -63,15 +56,10 @@ const Header = () => {
         </div>
       </header>
 
-      {/* 모달에 로그인 성공 콜백 전달 */}
+      {/* 로그인 모달 */}
       {isLoginOpen && (
         <LoginModal
           onClose={() => setIsLoginOpen(false)}
-          onLoginSuccess={() => {
-            setIsLoggedIn(true);
-            const nick = localStorage.getItem("nickname");
-            if (nick) setNickname(nick);
-          }}
         />
       )}
     </>
