@@ -4,6 +4,7 @@ import { getClassDetail } from "../../lib/classAPI";
 import { getWorkshopReviews, deleteReview } from "../../lib/reviewAPI";
 import { useAuth } from "../../hooks/useAuth";
 import ImageSlider from "../workshop/components/ImageSlider";
+import WorkshopReservationModal from "../../components/WorkshopReservationModal";
 
 const ClassDetailPage = () => {
   const { id } = useParams();
@@ -15,6 +16,9 @@ const ClassDetailPage = () => {
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewsError, setReviewsError] = useState(null);
+
+  // 예약 모달 관련 상태
+  const [reservationModalOpen, setReservationModalOpen] = useState(false);
 
   // 혜은 - 리뷰 수정/삭제 함수들
   const handleEditReview = (review) => {
@@ -43,6 +47,21 @@ const ClassDetailPage = () => {
       console.error("리뷰 삭제 오류:", error);
       alert("리뷰 삭제에 실패했습니다.");
     }
+  };
+
+  // 예약 관련 함수들
+  const handleReservationClick = () => {
+    if (!isLoggedIn) {
+      alert("예약을 하시려면 로그인이 필요합니다.");
+      return;
+    }
+    setReservationModalOpen(true);
+  };
+
+  const handleReservationSuccess = (reservationData) => {
+    setReservationModalOpen(false);
+    alert("공방 예약이 완료되었습니다!");
+    // 필요시 예약 목록 페이지로 이동하거나 다른 처리
   };
 
   // 혜은 - 리뷰 데이터 가져오기
@@ -165,7 +184,10 @@ const ClassDetailPage = () => {
             가격: {price ? price.toLocaleString() + "원" : "가격 미정"}
           </div>
 
-          <button className="w-full py-4 bg-black text-white text-xl rounded-md hover:bg-gray-800 transition">
+          <button
+            onClick={handleReservationClick}
+            className="w-full py-4 bg-black text-white text-xl rounded-md hover:bg-gray-800 transition"
+          >
             예약하기
           </button>
         </div>
@@ -312,6 +334,16 @@ const ClassDetailPage = () => {
           </div>
         )}
       </div>
+
+      {/* 예약 모달 */}
+      {reservationModalOpen && classData && (
+        <WorkshopReservationModal
+          isOpen={reservationModalOpen}
+          onClose={() => setReservationModalOpen(false)}
+          workshop={classData}
+          onReservationSuccess={handleReservationSuccess}
+        />
+      )}
     </div>
   );
 };

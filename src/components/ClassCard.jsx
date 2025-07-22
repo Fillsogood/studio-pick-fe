@@ -1,64 +1,51 @@
 import { useNavigate } from "react-router-dom";
 import { Star } from "lucide-react";
 
-const ClassCard = ({ data }) => {
+const ClassCard = ({ data, onReserveClick }) => {
   const navigate = useNavigate();
-  const {
-    id,
-    title,
-    description,
-    price,
-    date,
-    thumbnailUrl,
-    category,
-    rating,
-  } = data;
+  const { id, title, description, price, date, rating } = data;
+
+  const handleReserveClick = (e) => {
+    e.stopPropagation(); // 카드 클릭 방지
+    if (onReserveClick) {
+      onReserveClick(data); // 모달 열기
+    } else {
+      navigate(`/classes/${id}`); // 기본 동작 (상세 페이지로 이동)
+    }
+  };
 
   return (
     <div
+      className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
       onClick={() => navigate(`/classes/${id}`)}
-      className="cursor-pointer border rounded-xl shadow-sm hover:shadow-md bg-white transition w-full max-w-sm"
     >
-      {/* 이미지 영역 */}
-      <div className="aspect-[4/3] w-full overflow-hidden rounded-t-xl">
+      <div className="relative">
         <img
-          src={thumbnailUrl || "/default-thumbnail.jpg"}
+          src={data.thumbnailUrl || "/placeholder-image.jpg"}
           alt={title}
-          className="w-full h-full object-cover"
+          className="w-full h-48 object-cover"
         />
+        <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
+          {data.category || "카테고리 없음"}
+        </div>
       </div>
-
-      {/* 정보 영역 */}
-      <div className="p-4 flex flex-col justify-between h-[190px]">
-        {/* 카테고리 + 평점 */}
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <span>{category || "카테고리 없음"}</span>
-          <div className="flex items-center text-yellow-500">
-            <Star className="w-4 h-4 fill-yellow-500 mr-0.5" />
-            <span className="font-medium">{(rating ?? 0).toFixed(1)}</span>
+      <div className="p-4">
+        <h3 className="text-lg font-semibold mb-2 line-clamp-2">{title}</h3>
+        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{description}</p>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-gray-500 text-sm">{date}</span>
+          <div className="flex items-center">
+            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+            <span className="text-sm ml-1">★{rating}</span>
           </div>
         </div>
-
-        {/* 타이틀 */}
-        <h3 className="mt-1 font-semibold text-base text-gray-900 truncate">
-          {title}
-        </h3>
-
-        {/* 설명 */}
-        <p className="text-sm text-gray-700 line-clamp-2">{description}</p>
-
-        {/* 날짜 + 가격 + 버튼 */}
-        <div className="mt-3 flex items-center justify-between">
-          <div className="flex flex-col text-base">
-            <span className="text-gray-400">{date}</span>
-            <span className="font-bold text-black">{price.toLocaleString()}원</span>
-          </div>
+        <div className="flex items-center justify-between">
+          <span className="text-lg font-bold text-WarmBeige-600">
+            {price?.toLocaleString()}원
+          </span>
           <button
             className="text-base bg-WarmBeige-300 border px-3 py-1.5 rounded hover:bg-WarmBeige-200"
-            onClick={(e) => {
-              e.stopPropagation(); // 카드 클릭 방지
-              navigate(`/classes/${id}/reserve`);
-            }}
+            onClick={handleReserveClick}
           >
             예약하기
           </button>
