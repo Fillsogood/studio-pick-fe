@@ -17,7 +17,6 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
 
-  // 카카오 로그인
   const handleKakaoLogin = () => {
     const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
     const REDIRECT_URI = import.meta.env.VITE_KAKAO_REDIRECT_URI;
@@ -37,18 +36,21 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
       const profileRes = await getMyProfile();
       const nickname = profileRes.data.data.nickname;
 
-      localStorage.setItem("accessToken", response.data.accessToken);
+      // accessToken, refreshToken 저장
+      const { accessToken, refreshToken } = response.data;
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
       localStorage.setItem("loginType", "local");
       localStorage.setItem("nickname", nickname);
 
+      // recoil 상태 업데이트
       setAuthUser(profileRes.data.data);
 
-      // ✅ 로그인 성공 후 분기 처리
       if (typeof onLoginSuccess === "function") {
-        onLoginSuccess(); // ✅ 부모에서 모달 닫기 + 이동까지 다 처리
+        onLoginSuccess();
       } else {
-        navigate(location.pathname); // 기본: 현재 페이지로
-        onClose(); // 모달 닫기
+        navigate(location.pathname);
+        onClose();
       }
     } catch (err) {
       console.error(err);
@@ -67,15 +69,10 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
         </button>
 
         <div className="text-center mb-6">
-          <img
-            src={logo}
-            alt="Studio Pick"
-            className="mx-auto w-24 h-24 mb-2"
-          />
+          <img src={logo} alt="Studio Pick" className="mx-auto w-24 h-24 mb-2" />
           <p className="text-sm font-semibold mt-1">환영합니다</p>
         </div>
 
-        {/* 로그인 폼 */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-sm text-gray-700 mb-1">이메일</label>

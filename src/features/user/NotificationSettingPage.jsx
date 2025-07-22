@@ -25,7 +25,7 @@ const NotificationSettingPage = () => {
         <button
           onClick={handleToggle}
           className={`w-12 h-6 rounded-full relative transition-colors duration-300 ${
-            marketingAgree ? "bg-lime-300" : "bg-gray-300"
+            marketingAgree ? "bg-WarmBeige-300" : "bg-gray-300"
           }`}
         >
           <div
