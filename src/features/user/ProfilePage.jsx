@@ -23,7 +23,7 @@ const ProfilePage = () => {
   const [emailChanged, setEmailChanged] = useState(false);
   const [isEmailValid, setIsEmailValid] = useState(false);
 
-  // 🔒 비밀번호 변경용 상태
+  // 비밀번호 변경용 상태
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -110,7 +110,7 @@ const ProfilePage = () => {
       setConfirmPassword("");
       setShowPasswordChange(false);
     } catch (e) {
-      console.error("❌ 비밀번호 변경 실패:", e.response?.data || e.message);
+      console.error("비밀번호 변경 실패:", e.response?.data || e.message);
       alert("비밀번호 변경 실패");
     }
   };
@@ -137,7 +137,7 @@ const ProfilePage = () => {
           )}
           <button
             onClick={handleVerify}
-            className="px-4 py-2 bg-lime-300 text-black rounded w-full"
+            className="px-4 py-2 bg-WarmBeige-300 text-black rounded w-full"
           >
             입력 완료
           </button>
