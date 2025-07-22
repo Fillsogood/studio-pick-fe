@@ -1,12 +1,68 @@
 import React, { useState, useEffect } from "react";
-import {
-  X,
-  CreditCard,
-  Smartphone,
-  CheckCircle,
-  AlertCircle,
-} from "lucide-react";
+import { X, CheckCircle, AlertCircle } from "lucide-react";
 import { requestPayment } from "../lib/paymentAPI";
+
+const paymentMethods = [
+  {
+    id: "toss",
+    name: "토스페이",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="12" fill="#0064FF" />
+        <path
+          d="M7.5 13.5C7.5 11.0147 9.51472 9 12 9C14.4853 9 16.5 11.0147 16.5 13.5C16.5 15.9853 14.4853 18 12 18C9.51472 18 7.5 15.9853 7.5 13.5Z"
+          fill="white"
+        />
+      </svg>
+    ),
+    description: "토스페이로 간편 결제",
+    enabled: true,
+  },
+  {
+    id: "kakaopay",
+    name: "카카오페이",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect width="24" height="24" rx="12" fill="#FEE500" />
+        <ellipse cx="12" cy="12" rx="7" ry="5" fill="#3C1E1E" />
+      </svg>
+    ),
+    description: "카카오페이 (준비중)",
+    enabled: false,
+  },
+  {
+    id: "naverpay",
+    name: "네이버페이",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect width="24" height="24" rx="12" fill="#03C75A" />
+        <path d="M9 8H11L13 12V8H15V16H13L11 12V16H9V8Z" fill="white" />
+      </svg>
+    ),
+    description: "네이버페이 (준비중)",
+    enabled: false,
+  },
+];
+
+// 예약 상태 한글 변환
+const statusToKorean = (status) => {
+  switch (status) {
+    case "PENDING":
+      return "대기중";
+    case "CONFIRMED":
+      return "확정";
+    case "CANCEL_REQUESTED":
+      return "취소 요청됨";
+    case "CANCELLED":
+      return "취소됨";
+    case "COMPLETED":
+      return "완료됨";
+    case "REFUNDED":
+      return "환불됨";
+    default:
+      return status;
+  }
+};
 
 const PaymentModal = ({
   isOpen,
@@ -15,7 +71,7 @@ const PaymentModal = ({
   onPaymentSuccess,
   onPaymentError,
 }) => {
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("card");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("toss");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [paymentData, setPaymentData] = useState(null);
@@ -26,45 +82,28 @@ const PaymentModal = ({
       const data = {
         reservationId: reservation.id,
         amount: reservation.totalAmount,
-        orderName: `${
-          reservation.studio?.name || reservation.workshop?.title
-        } 예약`,
+        orderName:
+          reservation.instructor ||
+          reservation.studio?.name ||
+          reservation.workshop?.title ||
+          "주문명 없음",
         customerName: reservation.user?.name || "고객",
+        customerEmail: reservation.user?.email || "customer@example.com",
       };
       setPaymentData(data);
     }
   }, [isOpen, reservation]);
 
-  // 결제 방법 옵션
-  const paymentMethods = [
-    {
-      id: "card",
-      name: "신용카드",
-      icon: <CreditCard className="w-5 h-5" />,
-      description: "모든 신용카드 결제 가능",
-    },
-    {
-      id: "kakaopay",
-      name: "카카오페이",
-      icon: <Smartphone className="w-5 h-5" />,
-      description: "카카오페이로 간편 결제",
-    },
-  ];
-
   // 결제 요청 처리
   const handlePaymentRequest = async () => {
     if (!paymentData) return;
-
     setIsLoading(true);
     setError("");
-
     try {
       const response = await requestPayment(paymentData);
-
       if (response.data.success) {
         const { orderId, clientKey } = response.data.data;
-
-        // 토스페이먼츠 결제창 호출
+        console.log("[TOSS] clientKey from backend:", clientKey); // clientKey 값 확인
         await loadTossPayments(clientKey, orderId, paymentData.amount);
       } else {
         throw new Error(response.data.message || "결제 요청에 실패했습니다.");
@@ -81,13 +120,10 @@ const PaymentModal = ({
   // 토스페이먼츠 스크립트 로드
   const loadTossPayments = (clientKey, orderId, amount) => {
     return new Promise((resolve, reject) => {
-      // 이미 로드된 경우
       if (window.TossPayments) {
         initializeTossPayments(clientKey, orderId, amount, resolve, reject);
         return;
       }
-
-      // 스크립트 로드
       const script = document.createElement("script");
       script.src = "https://js.tosspayments.com/v1/payment";
       script.onload = () => {
@@ -109,12 +145,8 @@ const PaymentModal = ({
     reject
   ) => {
     const tossPayments = window.TossPayments(clientKey);
-
-    const paymentMethod =
-      selectedPaymentMethod === "kakaopay" ? "카카오페이" : "카드";
-
     tossPayments
-      .requestPayment(paymentMethod, {
+      .requestPayment("카드", {
         amount: amount,
         orderId: orderId,
         orderName: paymentData.orderName,
@@ -123,12 +155,10 @@ const PaymentModal = ({
         failUrl: `${window.location.origin}/payment/fail`,
       })
       .then((result) => {
-        // 결제 성공 처리
         handlePaymentSuccess(result);
         resolve(result);
       })
       .catch((error) => {
-        // 결제 실패 처리
         handlePaymentFailure(error);
         reject(error);
       });
@@ -153,61 +183,69 @@ const PaymentModal = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-auto">
-        {/* 헤더 */}
+        {/* 상단: 예약 정보 및 결제 정보 */}
         <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">결제하기</h2>
-              <p className="text-sm text-gray-600 mt-1">
-                안전한 결제 서비스를 이용해주세요
-              </p>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-              disabled={isLoading}
-            >
-              <X className="w-6 h-6" />
-            </button>
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-gray-900">결제하기</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              안전한 결제 서비스를 이용해주세요
+            </p>
           </div>
-        </div>
-
-        {/* 예약 정보 요약 */}
-        {reservation && (
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              예약 정보
-            </h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">예약 장소</span>
-                <span className="font-medium">
-                  {reservation.studio?.name || reservation.workshop?.title}
-                </span>
+          {reservation && (
+            <div className="mb-4 text-sm text-gray-800 space-y-1">
+              <div>
+                예약번호: <b>{reservation.id}</b>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">예약 일시</span>
-                <span className="font-medium">
-                  {reservation.date} {reservation.startTime}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">참가 인원</span>
-                <span className="font-medium">{reservation.peopleCount}명</span>
-              </div>
-              <div className="border-t border-gray-200 pt-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-gray-900">
-                    결제 금액
-                  </span>
-                  <span className="text-xl font-bold text-green-600">
-                    ₩{reservation.totalAmount?.toLocaleString()}
-                  </span>
+              {reservation.date && reservation.startTime && (
+                <div>
+                  예약일시:{" "}
+                  <b>
+                    {reservation.date} {reservation.startTime}
+                  </b>
                 </div>
+              )}
+              {reservation.status && (
+                <div>
+                  상태: <b>{statusToKorean(reservation.status)}</b>
+                </div>
+              )}
+              {reservation.instructor && (
+                <div>
+                  강사명: <b>{reservation.instructor}</b>
+                </div>
+              )}
+              {(reservation.studio?.name || reservation.workshop?.title) && (
+                <div>
+                  예약 장소:{" "}
+                  <b>
+                    {reservation.studio?.name || reservation.workshop?.title}
+                  </b>
+                </div>
+              )}
+              {reservation.peopleCount !== undefined &&
+                reservation.peopleCount !== null && (
+                  <div>
+                    참가 인원: <b>{reservation.peopleCount}명</b>
+                  </div>
+                )}
+              {/* 결제금액은 항상 강조해서 표시 */}
+              <div className="mt-2 text-2xl font-extrabold text-green-600">
+                결제금액: ₩{reservation.totalAmount?.toLocaleString() || "0"}
               </div>
+              {reservation.instructor && (
+                <div>
+                  주문이름: <b>{reservation.instructor}</b>
+                </div>
+              )}
+              {reservation.user?.name && reservation.user?.email && (
+                <div>
+                  예약자: <b>{reservation.user.name}</b> (
+                  {reservation.user.email})
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* 결제 방법 선택 */}
         <div className="p-6 border-b border-gray-200">
@@ -222,15 +260,18 @@ const PaymentModal = ({
                   selectedPaymentMethod === method.id
                     ? "border-green-500 bg-green-50"
                     : "border-gray-200 hover:border-gray-300"
-                }`}
+                } ${!method.enabled ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <input
                   type="radio"
                   name="paymentMethod"
                   value={method.id}
                   checked={selectedPaymentMethod === method.id}
-                  onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                  onChange={() =>
+                    method.enabled && setSelectedPaymentMethod(method.id)
+                  }
                   className="sr-only"
+                  disabled={!method.enabled}
                 />
                 <div className="flex items-center flex-1">
                   <div className="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-lg mr-4">
@@ -287,7 +328,9 @@ const PaymentModal = ({
         <div className="p-6">
           <button
             onClick={handlePaymentRequest}
-            disabled={isLoading || !paymentData}
+            disabled={
+              isLoading || !paymentData || selectedPaymentMethod !== "toss"
+            }
             className="w-full px-6 py-4 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
             {isLoading ? (
@@ -306,4 +349,3 @@ const PaymentModal = ({
 };
 
 export default PaymentModal;
- 

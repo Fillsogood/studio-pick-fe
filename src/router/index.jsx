@@ -14,7 +14,6 @@ import ClassApplyPage from "../features/workshop/ClassRegisterPage.jsx";
 import ClassDetailPage from "../features/workshop/ClassDetailPage";
 import HostCenterPage from "../features/host/HostCenterPage.jsx";
 
-
 import ProfilePage from "../features/user/ProfilePage";
 import NotificationSettingPage from "../features/user/NotificationSettingPage.jsx";
 import MyPageLayout from "../layouts/MyPageLayout";
@@ -29,8 +28,8 @@ import ClassListPage from "../features/workshop/ClassListPage";
 import ResetPasswordPage from "../features/user/ResetPasswordPage.jsx";
 
 // 결제 관련 페이지
-import PaymentSuccessPage from "../pages/PaymentSuccessPage";
-import PaymentFailPage from "../pages/PaymentFailPage";
+import PaymentSuccessPage from "../features/payment/PaymentSuccessPage";
+import PaymentFailPage from "../features/payment/PaymentFailPage";
 
 const AppRoutes = () => {
   return (
@@ -59,10 +58,7 @@ const AppRoutes = () => {
           path="/review/write/:reservationId"
           element={<ReviewWritePage />}
         />
-        <Route
-          path="/review/edit/:reviewId"
-          element={<ReviewEditPage />}
-        />
+        <Route path="/review/edit/:reviewId" element={<ReviewEditPage />} />
         <Route path="/studios" element={<StudioListPage />} />
         <Route path="/studios/:studioId" element={<StudioDetailPage />} />
         <Route path="/studios/rental" element={<StudioApplyPage />} />
