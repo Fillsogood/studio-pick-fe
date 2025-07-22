@@ -9,7 +9,7 @@ import RefundManagementPage from './pages/RefundManagementPage';
 import MemberManagementPage from './pages/MemberManagementPage';
 import ReportManagementPage from './pages/ReportManagementPage';
 import SalesDashboardPage from './pages/SalesDashboardPage';
-import SystemSettingPage from './pages/SystemSettingPage';
+// import SystemSettingPage from './pages/SystemSettingPage';
 
 const AdminApp = () => {
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ const AdminApp = () => {
     member: { title: '회원 계정 관리', subtitle: '사용자 계정을 관리하세요.' },
     report: { title: '신고 관리', subtitle: '신고된 콘텐츠를 검토하고 처리하세요.' },
     sales: { title: '매출 대시보드', subtitle: '매출 현황과 트렌드를 분석하세요.' },
-    settings: { title: '시스템 설정', subtitle: '시스템 설정을 관리하세요.' }
+    // settings: { title: '시스템 설정', subtitle: '시스템 설정을 관리하세요.' }
   };
 
   return (
@@ -54,7 +54,7 @@ const AdminApp = () => {
         <Route path="member" element={<MemberManagementPage />} />
         <Route path="report" element={<ReportManagementPage />} />
         <Route path="sales" element={<SalesDashboardPage />} />
-        <Route path="settings" element={<SystemSettingPage />} />
+        {/* <Route path="settings" element={<SystemSettingPage />} /> */}
         <Route path="" element={<AdminDashboardPage />} />
       </Routes>
     </AdminLayout>

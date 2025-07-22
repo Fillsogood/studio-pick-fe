@@ -7,10 +7,8 @@ const adminRefundAPI = {
     try {
       const params = { page, size };
       if (status) params.status = status;
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
-
-      const response = await axiosInstance.get(`${ADMIN_REFUND_API_BASE}`, { params });
+      
+      const response = await axiosInstance.get(`${ADMIN_REFUND_API_BASE}`, { params });      
       return response.data;
     } catch (error) {
       throw error;

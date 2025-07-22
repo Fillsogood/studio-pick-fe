@@ -1,13 +1,13 @@
-// ApprovalPage.jsx (리팩토링 + 상세보기 + 모달 상태변경 통합)
+// ✅ ApprovalPage.jsx 수정본 - 스튜디오/공방 분기 처리 포함
 
 import React, { useState, useEffect } from 'react';
-import { Eye, Check, X, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Eye, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Table } from '../components/common/DataComponents';
-import { Button, Badge, Input, Modal } from '../components/common';
+import { Button, Badge, Input } from '../components/common';
 import studioAPI from '../../../lib/admin/adminStudioAPI';
 import workshopAPI from '../../../lib/admin/adminWorkShopAPI';
 import { formatDate, getStatusBadgeColor, getStatusText, STATUS_CODES } from '../../../lib/admin';
-import  DetailModal  from "../components/modals/DetailModal";
+import DetailModal from '../components/modals/DetailModal';
 
 const ApprovalPage = () => {
   const [loading, setLoading] = useState(true);
@@ -32,10 +32,18 @@ const ApprovalPage = () => {
         status: filterStatus === 'all' ? null : filterStatus.toUpperCase(),
         keyword: searchKeyword.trim() || null
       };
-      const response = filterType === 'studio' ? await studioAPI.getStudioAccounts(params) : await workshopAPI.getWorkshops(params);
+      const response = filterType === 'studio'
+        ? await studioAPI.getStudioAccounts(params)
+        : await workshopAPI.getWorkshops(params);
+
       if (response.success) {
-        setItems(response.data.studios || response.data.workshops || []);
-        setTotalPages(response.data.totalPages || 1);
+        if (filterType === 'studio') {
+          setItems(response.data.studios || []);
+          setTotalPages(response.data.totalPages || 1);
+        } else {
+          setItems(response.data.workshops || []);
+          setTotalPages(response.data.pagination?.totalPages || 1);
+        }
         setCurrentPage(page);
       } else {
         throw new Error(response.message);
@@ -49,7 +57,9 @@ const ApprovalPage = () => {
 
   const fetchStats = async () => {
     try {
-      const response = filterType === 'studio' ? await studioAPI.getStudioStats() : await workshopAPI.getWorkshopStats();
+      const response = filterType === 'studio'
+        ? await studioAPI.getStudioStats()
+        : await workshopAPI.getWorkshopStats();
       if (response.success) setStats(response.data);
     } catch (err) {
       console.error('통계 로드 실패:', err);
@@ -67,7 +77,10 @@ const ApprovalPage = () => {
 
   const handleSearch = () => fetchItems(1);
   const handleSearchKeyDown = (e) => e.key === 'Enter' && handleSearch();
-  const handleRefresh = () => { fetchItems(currentPage); fetchStats(); };
+  const handleRefresh = () => {
+    fetchItems(currentPage);
+    fetchStats();
+  };
 
   const handleStatusChange = async (itemId, status, reason = '관리자 처리') => {
     if (processingIds.has(itemId)) return;
@@ -77,7 +90,7 @@ const ApprovalPage = () => {
       if (filterType === 'studio') {
         response = await studioAPI.changeStudioStatus(itemId, { status, reason });
       } else {
-        response = await workshopAPI.changeWorkshopStatus(itemId, { status, reason });  // ✅ 이게 맞습니다.
+        response = await workshopAPI.changeWorkshopStatus(itemId, { action: status, reason });  // ✅ 수정됨
       }
   
       if (response.success) {
@@ -102,28 +115,38 @@ const ApprovalPage = () => {
   const getStatusBadge = (status) => <Badge variant={getStatusBadgeColor(status)}>{getStatusText(status)}</Badge>;
 
   const tableData = items.map((item) => [
-    item.name || '알 수 없음',
-    item.ownerInfo?.name || '알 수 없음',
-    item.category || '기타',
-    item.location || '알 수 없음',
+    filterType === 'studio' ? (item.name || '알 수 없음') : (item.title || '알 수 없음'),
+    item.ownerInfo?.name || item.instructorName || '알 수 없음',
+    item.category || '-',
+    item.location || item.studioName || '알 수 없음',
     formatDate(item.createdAt),
     getStatusBadge(item.status)
   ]);
 
   const tableActions = items.map((item) => [
-    <Button key="view" variant="outline" size="small" onClick={() => setDetailItem(item)}><Eye className="w-4 h-4 mr-1" /> 상세보기</Button>
+    <Button key="view" variant="outline" size="small" onClick={() => setDetailItem(item)}>
+      <Eye className="w-4 h-4 mr-1" /> 상세보기
+    </Button>
   ]);
 
-  const getStatsCards = () => [
-    { title: '승인대기', value: stats.pendingStudios || 0, color: 'blue' },
-    { title: '승인완료', value: stats.approvedStudios || 0, color: 'green' },
-    { title: '승인거부', value: stats.rejectedStudios || 0, color: 'red' },
-    { title: '전체', value: stats.totalStudios || 0, color: 'gray' }
-  ];
+  const getStatsCards = () => {
+    return filterType === 'studio'
+      ? [
+          { title: '승인대기', value: stats.pendingStudios || 0, color: 'blue' },
+          { title: '승인완료', value: stats.approvedStudios || 0, color: 'green' },
+          { title: '승인거부', value: stats.rejectedStudios || 0, color: 'red' },
+          { title: '전체', value: stats.totalStudios || 0, color: 'gray' }
+        ]
+      : [
+          { title: '승인대기', value: stats.pendingWorkshops || 0, color: 'blue' },
+          { title: '승인완료', value: stats.activeWorkshops || 0, color: 'green' },
+          { title: '승인거부', value: stats.rejectedWorkshops || 0, color: 'red' },
+          { title: '전체', value: stats.totalWorkshops || 0, color: 'gray' }
+        ];
+  };
 
   return (
     <div className="space-y-6">
-      {/* Filters */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="border rounded-lg px-3 py-2">
@@ -142,7 +165,6 @@ const ApprovalPage = () => {
         <Button onClick={handleRefresh} variant="outline"><RefreshCw className="w-4 h-4 mr-2" /> 새로고침</Button>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {getStatsCards().map((stat, index) => (
           <div key={index} className="bg-white p-4 rounded-lg border">
@@ -152,10 +174,8 @@ const ApprovalPage = () => {
         ))}
       </div>
 
-      {/* Table */}
       <Table headers={[filterType === 'studio' ? '스튜디오명' : '공방명', '대표자', '카테고리', '위치', '신청일', '상태']} data={tableData} actions={tableActions} />
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center items-center space-x-2 mt-6">
           <Button onClick={() => fetchItems(currentPage - 1)} disabled={currentPage <= 1} variant="outline" size="small">이전</Button>
@@ -167,7 +187,6 @@ const ApprovalPage = () => {
         </div>
       )}
 
-      {/* Empty State */}
       {items.length === 0 && !loading && (
         <div className="text-center py-12">
           <AlertTriangle className="mx-auto h-12 w-12 text-gray-400" />
@@ -176,13 +195,24 @@ const ApprovalPage = () => {
         </div>
       )}
 
-      {/* Detail Modal */}
       {detailItem && (
         <DetailModal
           item={detailItem}
           onClose={() => setDetailItem(null)}
-          onApprove={(reason) => handleStatusChange(detailItem.id, STATUS_CODES.STUDIO_APPROVED, reason)}
-          onReject={(reason) => handleStatusChange(detailItem.id, STATUS_CODES.STUDIO_REJECTED, reason)}
+          onApprove={(reason) => handleStatusChange(
+            detailItem.id,
+            filterType === 'studio'
+              ? STATUS_CODES.STUDIO_APPROVED
+              : STATUS_CODES.WORKSHOP_ACTIVE,
+            reason
+          )}
+          onReject={(reason) => handleStatusChange(
+            detailItem.id,
+            filterType === 'studio'
+              ? STATUS_CODES.STUDIO_REJECTED
+              : STATUS_CODES.WORKSHOP_INACTIVE,
+            reason
+          )}
         />
       )}
     </div>
