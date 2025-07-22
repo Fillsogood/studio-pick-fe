@@ -40,14 +40,14 @@ const Header = () => {
           <User2 size={20} />
           {isLoggedIn ? (
             <span
-              className="text-sm font-medium hover:underline"
+              className="text-base font-semibold hover:underline"
               onClick={() => navigate("/account/profile")}
             >
               {nickname}
             </span>
           ) : (
             <span
-              className="text-sm font-medium hover:underline"
+              className="text-base font-semibold hover:underline"
               onClick={() => setIsLoginOpen(true)}
             >
               로그인
