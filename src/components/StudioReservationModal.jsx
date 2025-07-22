@@ -187,16 +187,16 @@ const StudioReservationModal = ({ isOpen, onClose, studio, onSuccess }) => {
                   key={slot}
                   onClick={() => handleTimeSelect(slot)}
                   className={`px-2 py-1 border rounded text-sm transition-colors
-                    ${slot === selectedStart ? "bg-lime-300 text-black" : ""}
+                    ${slot === selectedStart ? "bg-WarmBeige-300 text-black" : ""}
                     ${
                       selectedStart &&
                       selectedEnd &&
                       slot > selectedStart &&
                       slot < selectedEnd
-                        ? "bg-lime-100"
+                        ? "bg-WarmBeige-100"
                         : ""
                     }
-                    ${slot === selectedEnd ? "bg-lime-300 text-black" : ""}
+                    ${slot === selectedEnd ? "bg-WarmBeige-300 text-black" : ""}
                   `}
                 >
                   {slot}
@@ -236,7 +236,7 @@ const StudioReservationModal = ({ isOpen, onClose, studio, onSuccess }) => {
           {!paymentDone ? (
             <button
               onClick={handlePayment}
-              className="w-full bg-lime-300 hover:bg-lime-200 text-black py-3 rounded-lg font-semibold mt-2"
+              className="w-full bg-WarmBeige-300 hover:bg-WarmBeige-200 text-black py-3 rounded-lg font-semibold mt-2"
             >
               결제하기
             </button>

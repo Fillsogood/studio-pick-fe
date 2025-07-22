@@ -181,7 +181,7 @@ export default function StudioDetailPage() {
           <ul className="grid grid-cols-2 gap-2 text-gray-700">
             {facilities.map((item, idx) => (
               <li key={idx} className="flex items-center gap-2">
-                <FaCheckCircle className="text-lime-400" />
+                <FaCheckCircle className="text-WarmBeige-300" />
                 {item.trim()}
               </li>
             ))}
@@ -261,7 +261,7 @@ export default function StudioDetailPage() {
               </button>
               <button
                 onClick={() => setShowModal(true)} // ← 이 부분을 추가!
-                className="bg-lime-300 hover:bg-lime-200 text-black px-4 py-2 rounded-lg"
+                className="bg-WarmBeige-300 hover:bg-WarmBeige-200 text-black px-4 py-2 rounded-lg"
               >
                 예약하기
               </button>

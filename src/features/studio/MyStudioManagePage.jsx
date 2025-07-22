@@ -19,10 +19,10 @@ export default function MyStudioManagePage() {
   console.log("현재 필터:", statusFilter);
   console.log("필터링된 스튜디오:", filteredStudios);
   // 내부에서 상태 enum 정의
-  //   const StudioStatus = {
-  //     APPROVED: "개설대기",
-  //     ACTIVE: "활동중",
-  //   };
+  // const StudioStatus = {
+  //   APPROVED: "개설대기",
+  //   ACTIVE: "활동중",
+  // };
 
   useEffect(() => {
     const fetchStudios = async () => {
@@ -59,8 +59,8 @@ export default function MyStudioManagePage() {
           className={`px-4 py-2 rounded-lg border transition
             ${
               statusFilter === "ALL"
-                ? "bg-lime-300 text-black border-lime-200"
-                : "bg-white text-gray-700 border-gray-300 hover:bg-lime-100"
+                ? "bg-WarmBeige-300 text-black border-WarmBeige-200"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-WarmBeige-100"
             }
           `}
         >
@@ -71,8 +71,8 @@ export default function MyStudioManagePage() {
           className={`px-4 py-2 rounded-lg border transition
             ${
               statusFilter === "APPROVED"
-                ? "bg-lime-300 text-black border-lime-200"
-                : "bg-white text-gray-700 border-gray-300 hover:bg-lime-100"
+                ? "bg-WarmBeige-300 text-black border-WarmBeige-200"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-WarmBeige-100"
             }
           `}
         >
@@ -83,8 +83,8 @@ export default function MyStudioManagePage() {
           className={`px-4 py-2 rounded-lg border transition
             ${
               statusFilter === "ACTIVE"
-                ? "bg-lime-300 text-black border-lime-200"
-                : "bg-white text-gray-700 border-gray-300 hover:bg-lime-100"
+                ? "bg-WarmBeige-300 text-black border-WarmBeige-200"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-WarmBeige-100"
             }
           `}
         >
@@ -120,7 +120,7 @@ export default function MyStudioManagePage() {
             <div className="flex items-center gap-3">
               {studio.status === "APPROVED" && (
                 <button
-                  className="bg-lime-300 hover:bg-lime-200 text-black px-3 py-1 rounded"
+                  className="bg-WarmBeige-300 hover:bg-WarmBeige-200 text-black px-3 py-1 rounded"
                   onClick={() =>
                     navigate(`/account/studios/${studio.id}/setup`)
                   }
@@ -130,7 +130,7 @@ export default function MyStudioManagePage() {
               )}
               {studio.status === "ACTIVE" && (
                 <button
-                  className="bg-lime-300 hover:bg-lime-200 text-black px-3 py-1 rounded"
+                  className="bg-WarmBeige-300 hover:bg-WarmBeige-200 text-black px-3 py-1 rounded"
                   onClick={() =>
                     navigate(`/account/studios/${studio.id}/setup`)
                   }

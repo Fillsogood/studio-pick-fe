@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { registerClass } from "@/lib/classAPI";
 import { useNavigate } from "react-router-dom";
 
