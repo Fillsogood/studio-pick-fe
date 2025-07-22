@@ -1,4 +1,6 @@
 import axiosInstance from "./axiosInstance";
+import { setRecoil } from "recoil-nexus";       
+import { authState } from "../recoil/authState"; 
 
 export const setupInterceptors = () => {
   axiosInstance.interceptors.response.use(
@@ -21,13 +23,16 @@ export const setupInterceptors = () => {
           await axiosInstance.post("/auth/refresh");
           return axiosInstance(originalRequest);
         } catch (refreshError) {
-          // 여기 수정
+          // 로그아웃 처리
           localStorage.removeItem("accessToken");
           localStorage.removeItem("nickname");
           localStorage.removeItem("loginType");
           sessionStorage.removeItem("isLoggedIn");
+          sessionStorage.removeItem("user");
 
-          // 강제 리다이렉트 제거
+          // recoil 상태도 초기화
+          setRecoil(authState, { isLoggedIn: false, user: null });
+
           return Promise.reject(refreshError);
         }
       }
