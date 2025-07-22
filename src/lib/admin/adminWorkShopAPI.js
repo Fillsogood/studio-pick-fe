@@ -3,14 +3,14 @@ import axiosInstance from '../axiosInstance';
 const ADMIN_WORKSHOP_API_BASE = '/api/admin/workshops';
 
 const adminWorkshopAPI = {
-  /**
-   * 워크샵 목록 조회
-   * GET /api/admin/workshops
-   */
-  getWorkshops: async (page = 1, size = null, status = null, keyword = null) => {
+  getWorkshops: async ({ page = 1, size = 10, status = null, keyword = null }) => {
     try {
       const response = await axiosInstance.get(ADMIN_WORKSHOP_API_BASE, {
-        params: { page, size, status, keyword }
+        params: { page, size, status, keyword },
+        paramsSerializer: params => Object.entries(params)
+          .filter(([_, v]) => v !== null && v !== undefined)
+          .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+          .join('&')
       });
       return {
         success: true,
@@ -27,10 +27,6 @@ const adminWorkshopAPI = {
     }
   },
 
-  /**
-   * 워크샵 상세 조회
-   * GET /api/admin/workshops/{workshopId}
-   */
   getWorkshopDetail: async (workshopId) => {
     try {
       const response = await axiosInstance.get(`${ADMIN_WORKSHOP_API_BASE}/${workshopId}`);
@@ -49,10 +45,6 @@ const adminWorkshopAPI = {
     }
   },
 
-  /**
-   * 워크샵 승인/거부
-   * POST /api/admin/workshops/{workshopId}/approval
-   */
   approveWorkshop: async (workshopId, command) => {
     try {
       const response = await axiosInstance.post(`${ADMIN_WORKSHOP_API_BASE}/${workshopId}/approval`, command);
@@ -71,13 +63,9 @@ const adminWorkshopAPI = {
     }
   },
 
-  /**
-   * 워크샵 상태 변경
-   * PATCH /api/admin/workshops/{workshopId}/status
-   */
   changeWorkshopStatus: async (workshopId, command) => {
     try {
-      const response = await axiosInstance.patch(`${ADMIN_WORKSHOP_API_BASE}/${workshopId}/status`, command);
+      const response = await axiosInstance.post(`${ADMIN_WORKSHOP_API_BASE}/${workshopId}/approval`, command);
       return {
         success: true,
         data: response.data.data,
@@ -93,14 +81,14 @@ const adminWorkshopAPI = {
     }
   },
 
-  /**
-   * 워크샵 삭제
-   * DELETE /api/admin/workshops/{workshopId}?reason=...
-   */
   deleteWorkshop: async (workshopId, reason) => {
     try {
       const response = await axiosInstance.delete(`${ADMIN_WORKSHOP_API_BASE}/${workshopId}`, {
-        params: { reason }
+        params: { reason },
+        paramsSerializer: params => Object.entries(params)
+          .filter(([_, v]) => v !== null && v !== undefined)
+          .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+          .join('&')
       });
       return {
         success: true,
@@ -115,10 +103,6 @@ const adminWorkshopAPI = {
     }
   },
 
-  /**
-   * 워크샵 통계 조회
-   * GET /api/admin/workshops/stats
-   */
   getWorkshopStats: async () => {
     try {
       const response = await axiosInstance.get(`${ADMIN_WORKSHOP_API_BASE}/stats`);
@@ -137,14 +121,14 @@ const adminWorkshopAPI = {
     }
   },
 
-  /**
-   * 인기 워크샵 조회
-   * GET /api/admin/workshops/popular?period=...&limit=...
-   */
   getPopularWorkshops: async (period, limit) => {
     try {
       const response = await axiosInstance.get(`${ADMIN_WORKSHOP_API_BASE}/popular`, {
-        params: { period, limit }
+        params: { period, limit },
+        paramsSerializer: params => Object.entries(params)
+          .filter(([_, v]) => v !== null && v !== undefined)
+          .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+          .join('&')
       });
       return {
         success: true,
@@ -161,14 +145,14 @@ const adminWorkshopAPI = {
     }
   },
 
-  /**
-   * 신고된 워크샵 목록 조회
-   * GET /api/admin/workshops/reported?page=...&size=...
-   */
-  getReportedWorkshops: async (page = 1, size = 10) => {
+  getReportedWorkshops: async ({ page = 1, size = 10 }) => {
     try {
       const response = await axiosInstance.get(`${ADMIN_WORKSHOP_API_BASE}/reported`, {
-        params: { page, size }
+        params: { page, size },
+        paramsSerializer: params => Object.entries(params)
+          .filter(([_, v]) => v !== null && v !== undefined)
+          .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+          .join('&')
       });
       return {
         success: true,

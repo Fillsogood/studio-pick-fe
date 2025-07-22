@@ -3,6 +3,7 @@ import { CreditCard, DollarSign, TrendingUp, Calendar, Download, CheckCircle } f
 import { Table } from '../components/common/DataComponents';
 import { Button, Badge } from '../components/common';
 import adminSettlementAPI from '../../../lib/admin/adminSettlementAPI';
+import { formatDateTime } from '../../../lib/admin';
 
 const SettlementManagementPage = () => {
   const [settlements, setSettlements] = useState([]);
@@ -57,14 +58,14 @@ const SettlementManagementPage = () => {
 
   const settlementTableData = settlements.map(s => [
     s.id,
-    s.studioName,
-    s.period,
-    `${s.amount.toLocaleString()}원`,
-    `${s.commission.toLocaleString()}원`,
-    `${s.netAmount.toLocaleString()}원`,
+    s.targetName,
+    s.ownerName,
+    `${(s.totalAmount || 0).toLocaleString()}원`,
+    `${(s.platformFee || 0).toLocaleString()}원`,
+    `${(s.payoutAmount || 0).toLocaleString()}원`,
     getSettlementStatusBadge(s.status),
-    s.requestDate,
-    s.processedDate || '-'
+    formatDateTime(s.createdAt),
+    formatDateTime(s.settledAt)
   ]);
 
   const settlementActions = settlements.map(s => [
@@ -82,9 +83,6 @@ const SettlementManagementPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">정산 관리</h1>
-        <Button variant="outline">
-          <Download className="w-4 h-4 mr-2" /> 엑셀 다운로드
-        </Button>
       </div>
       <div className="bg-white rounded-lg border">
         <div className="p-4 border-b">

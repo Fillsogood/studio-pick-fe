@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  Building, 
-  Calendar, 
-  DollarSign, 
-  AlertTriangle, 
-  RefreshCw 
-} from 'lucide-react';
-import { StatCard, SimpleBarChart, SimplePieChart, Table } from '../components/common/DataComponents';
+import { Users, Building, Calendar, DollarSign, AlertTriangle, RefreshCw } from 'lucide-react';
+import { StatCard, Table, SimpleBarChart } from '../components/common/DataComponents';
 import { Button } from '../components/common';
-import userAPI from '../../../lib/admin/adminUserAPI';
-import studioAPI from '../../../lib/admin/adminStudioAPI';
+import dashboardAPI from '../../../lib/admin/adminDashboardAPI';
 import reservationAPI from '../../../lib/admin/adminReservationAPI';
 import { formatCurrency, formatDateTime, getStatusBadgeColor, getStatusText } from '../../../lib/admin';
 
@@ -21,7 +13,9 @@ const AdminDashboardPage = () => {
     userStats: null,
     studioStats: null,
     reservationStats: null,
-    todayReservations: null
+    salesStats: null,
+    kpiStats: null,
+    todayReservationList: []
   });
 
   const fetchDashboardData = async () => {
@@ -29,19 +23,21 @@ const AdminDashboardPage = () => {
       setLoading(true);
       setError(null);
 
-      const [userStats, studioStats, reservationStats, todayReservations] = await Promise.all([
-        userAPI.getUserStats(),
-        studioAPI.getStudioStats(),
-        reservationAPI.getReservationStats(),
+      const [dashboard, kpiStats, todayReservations] = await Promise.all([
+        dashboardAPI.getDashboardData(),
+        dashboardAPI.getKpiSummary(),
         reservationAPI.getTodayReservations(1, 5)
       ]);
 
       setDashboardData({
-        userStats: userStats.success ? userStats.data : null,
-        studioStats: studioStats.success ? studioStats.data : null,
-        reservationStats: reservationStats.success ? reservationStats.data : null,
-        todayReservations: todayReservations.success ? todayReservations.data : null
+        userStats: dashboard.success ? dashboard.data.userStats : null,
+        studioStats: dashboard.success ? dashboard.data.studioStats : null,
+        reservationStats: dashboard.success ? dashboard.data.reservationStats : null,
+        salesStats: dashboard.success ? dashboard.data.salesStats : null,
+        kpiStats: kpiStats.success ? kpiStats.data : null,
+        todayReservationList: todayReservations.success ? todayReservations.data.reservations || [] : []
       });
+
     } catch (err) {
       console.error('대시보드 데이터 로드 실패:', err);
       setError('대시보드 데이터를 불러오는데 실패했습니다.');
@@ -62,25 +58,21 @@ const AdminDashboardPage = () => {
     const cards = [];
 
     if (dashboardData.userStats) {
-      const total = dashboardData.userStats.totalUsers || 0;
-      const admins = dashboardData.userStats.admins || 0;
-      const lockedusers = dashboardData.userStats.lockedUsers || 0;
-      const nonAdminActiveUsers = total - admins - lockedusers;
       cards.push({
         title: '총 사용자',
-        value: nonAdminActiveUsers.toLocaleString(),
-        change: dashboardData.userStats.userGrowthRate ? `+${dashboardData.userStats.userGrowthRate}%` : null,
+        value: dashboardData.userStats.totalUsers.toLocaleString(),
+        change: dashboardData.userStats.growthRate !== undefined ? `${dashboardData.userStats.growthRate}%` : '변동 없음',
         icon: Users,
         color: 'blue'
       });
     }
 
     if (dashboardData.studioStats) {
-      const totalStudios = (dashboardData.studioStats.totalStudios || 0) + (dashboardData.studioStats.totalWorkShops || 0);
+      const approvalRate = dashboardData.studioStats.approvalRate;
       cards.push({
-        title: '등록된 스튜디오/ 공방',
-        value: totalStudios.toLocaleString() || '0',
-        change: dashboardData.studioStats.studioGrowthRate ? `+${dashboardData.studioStats.studioGrowthRate}%` : null,
+        title: '등록된 스튜디오',
+        value: dashboardData.studioStats.totalStudios.toLocaleString(),
+        change: approvalRate !== undefined && !isNaN(approvalRate) ? `${approvalRate}% 승인율` : '승인율 없음',
         icon: Building,
         color: 'green'
       });
@@ -88,16 +80,26 @@ const AdminDashboardPage = () => {
 
     if (dashboardData.reservationStats) {
       cards.push({
-        title: '이번 달 예약',
-        value: dashboardData.reservationStats.thisMonthReservations?.toLocaleString() || '0',
-        change: dashboardData.reservationStats.reservationGrowthRate ? `+${dashboardData.reservationStats.reservationGrowthRate}%` : null,
+        title: '총 예약',
+        value: dashboardData.reservationStats.totalReservations.toLocaleString(),
+        change: `완료 ${dashboardData.reservationStats.completedReservations || 0}`,
         icon: Calendar,
         color: 'purple'
       });
       cards.push({
-        title: '이번 달 매출',
-        value: formatCurrency(dashboardData.reservationStats.thisMonthRevenue || 0),
-        change: dashboardData.reservationStats.revenueGrowthRate ? `+${dashboardData.reservationStats.revenueGrowthRate}%` : null,
+        title: '오늘 예약',
+        value: dashboardData.reservationStats.todayReservations.toLocaleString(),
+        change: '오늘 접수된 예약 수',
+        icon: Calendar,
+        color: 'yellow'
+      });
+    }
+
+    if (dashboardData.salesStats) {
+      cards.push({
+        title: '총 매출',
+        value: formatCurrency(dashboardData.salesStats.totalSales || 0),
+        change: `이번 달 ${formatCurrency(dashboardData.salesStats.monthSales || 0)}`,
         icon: DollarSign,
         color: 'teal'
       });
@@ -106,47 +108,33 @@ const AdminDashboardPage = () => {
     return cards;
   };
 
-  const generateMonthlyData = () => {
-    if (dashboardData.reservationStats?.monthlyData) {
-      return dashboardData.reservationStats.monthlyData.map((item, index) => ({
-        label: item.month || `${index + 1}월`,
-        value: item.count || 0,
-        percentage: Math.min((item.count || 0) / 200 * 100, 100)
-      }));
-    }
-    return [];
-  };
-
-  const generateCategoryData = () => {
-    if (dashboardData.studioStats?.categoryDistribution) {
-      return dashboardData.studioStats.categoryDistribution.map(item => ({
-        label: item.category || '기타',
-        value: item.count || 0
-      }));
-    }
-    return [];
+  const generateKpiChartData = () => {
+    if (!dashboardData.kpiStats) return [];
+    return [
+      { label: '시스템 가동률', value: dashboardData.kpiStats.operationalKpi.systemUptime },
+      { label: '응답 속도(ms)', value: dashboardData.kpiStats.operationalKpi.averageResponseTime },
+      { label: '예약 성공률(%)', value: dashboardData.kpiStats.operationalKpi.bookingSuccessRate },
+      { label: '결제 성공률(%)', value: dashboardData.kpiStats.operationalKpi.paymentSuccessRate },
+      { label: '유저 유지율(%)', value: dashboardData.kpiStats.growthKpi.userRetentionRate },
+      { label: '스튜디오 유지율(%)', value: dashboardData.kpiStats.growthKpi.studioRetentionRate },
+    ];
   };
 
   const generateRecentBookings = () => {
-    if (!dashboardData.todayReservations?.reservations) return [];
-
-    return dashboardData.todayReservations.reservations.map(reservation => [
+    if (!Array.isArray(dashboardData.todayReservationList) || dashboardData.todayReservationList.length === 0) return [];
+    return dashboardData.todayReservationList.map(reservation => [
       reservation.userInfo?.name || '알 수 없음',
       reservation.studioInfo?.name || '알 수 없음',
       formatDateTime(reservation.reservationDate),
       formatCurrency(reservation.totalAmount || 0),
-      <span 
-        key={reservation.id}
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${getStatusBadgeColor(reservation.status)}-100 text-${getStatusBadgeColor(reservation.status)}-800`}
-      >
+      <span key={reservation.id} className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${getStatusBadgeColor(reservation.status)}-100 text-${getStatusBadgeColor(reservation.status)}-800`}>
         {getStatusText(reservation.status)}
       </span>
     ]);
   };
 
   const statsCards = generateStatsCards();
-  const monthlyData = generateMonthlyData();
-  const categoryData = generateCategoryData();
+  const kpiChartData = generateKpiChartData();
   const recentBookings = generateRecentBookings();
 
   if (loading) {
@@ -181,46 +169,21 @@ const AdminDashboardPage = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statsCards.map((stat, index) => (
-          <StatCard
-            key={index}
-            title={stat.title}
-            value={stat.value}
-            change={stat.change}
-            icon={stat.icon}
-            color={stat.color}
-          />
+          <StatCard key={index} {...stat} />
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {monthlyData.length > 0 ? (
-          <SimpleBarChart data={monthlyData} title="월별 예약 현황" />
+        {kpiChartData.length > 0 ? (
+          <SimpleBarChart
+            data={kpiChartData.map(item => ({ label: item.label, value: item.value, percentage: item.value }))}
+            title="KPI 통계"
+            color="blue"
+          />
         ) : (
-          <div className="flex items-center justify-center h-60 border rounded text-gray-500">월별 데이터가 없습니다.</div>
-        )}
-
-        {categoryData.length > 0 ? (
-          <SimplePieChart data={categoryData} title="스튜디오 카테고리별 분포" />
-        ) : (
-          <div className="flex items-center justify-center h-60 border rounded text-gray-500">카테고리 데이터가 없습니다.</div>
+          <div className="flex items-center justify-center h-60 border rounded text-gray-500">KPI 데이터가 없습니다.</div>
         )}
       </div>
-
-      {recentBookings.length > 0 ? (
-        <Table
-          headers={['사용자', '스튜디오', '예약 시간', '결제 금액', '상태']}
-          data={recentBookings}
-          actions={[
-            <Button key="view" variant="outline" size="small">상세보기</Button>
-          ]}
-        />
-      ) : (
-        <div className="text-center py-12">
-          <Calendar className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">오늘 예약이 없습니다</h3>
-          <p className="mt-1 text-sm text-gray-500">새로운 예약을 기다리고 있습니다.</p>
-        </div>
-      )}
     </div>
   );
 };

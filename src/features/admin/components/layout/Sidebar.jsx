@@ -22,7 +22,7 @@ const Sidebar = ({ currentPage, setCurrentPage }) => {
     { id: 'member', name: '회원 계정 관리', icon: Users },
     { id: 'report', name: '신고 관리', icon: AlertTriangle },
     { id: 'sales', name: '매출 대시보드', icon: TrendingUp },
-    { id: 'settings', name: '시스템 설정', icon: Settings }
+    // { id: 'settings', name: '시스템 설정', icon: Settings }
   ];
 
   return (
