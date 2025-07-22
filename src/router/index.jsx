@@ -12,6 +12,7 @@ import MyStudioManagePage from "../features/studio/MyStudioManagePage.jsx";
 import StudioSetupPage from "../features/studio/StudioSetupPage.jsx";
 import ClassApplyPage from "../features/workshop/ClassRegisterPage.jsx";
 import ClassDetailPage from "../features/workshop/ClassDetailPage";
+import HostCenterPage from "../features/host/HostCenterPage.jsx";
 
 
 import ProfilePage from "../features/user/ProfilePage";
@@ -20,7 +21,7 @@ import MyPageLayout from "../layouts/MyPageLayout";
 import ReservationListPage from "../features/reservation/ReservationListPage";
 import ReviewWritePage from "../features/review/ReviewWritePage";
 import ReviewEditPage from "../features/review/ReviewEditPage";
-
+import ClassManagePage from "../features/host/ClassManagePage.jsx";
 import OAuthKakaoCallbackPage from "../features/auth/OAuthKakaoCallbackPage.jsx";
 import OAuthKakaoLogoutCallbackPage from "../features/auth/OAuthKakaoLogoutCallbackPage.jsx";
 import ClassListPage from "../features/workshop/ClassListPage";
@@ -52,6 +53,8 @@ const AppRoutes = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/reservation" element={<ReservationListPage />} />
+        <Route path="/host" element={<HostCenterPage />} />
+        <Route path="/host/classes" element={<ClassManagePage />} />
         <Route
           path="/review/write/:reservationId"
           element={<ReviewWritePage />}
