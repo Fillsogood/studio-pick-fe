@@ -39,6 +39,7 @@ const ApprovalPage = () => {
       if (response.success) {
         if (filterType === 'studio') {
           setItems(response.data.studios || []);
+          console.log(response.data.studios)
           setTotalPages(response.data.totalPages || 1);
         } else {
           setItems(response.data.workshops || []);
@@ -116,9 +117,8 @@ const ApprovalPage = () => {
 
   const tableData = items.map((item) => [
     filterType === 'studio' ? (item.name || '알 수 없음') : (item.title || '알 수 없음'),
-    item.ownerInfo?.name || item.instructorName || '알 수 없음',
-    item.category || '-',
-    item.location || item.studioName || '알 수 없음',
+    item.ownerName || item.instructorName || '알 수 없음',
+    item.Location || item.address || '알 수 없음',
     formatDate(item.createdAt),
     getStatusBadge(item.status)
   ]);
@@ -174,7 +174,7 @@ const ApprovalPage = () => {
         ))}
       </div>
 
-      <Table headers={[filterType === 'studio' ? '스튜디오명' : '공방명', '대표자', '카테고리', '위치', '신청일', '상태']} data={tableData} actions={tableActions} />
+      <Table headers={[filterType === 'studio' ? '스튜디오명' : '공방명', '대표자', '위치', '신청일', '상태']} data={tableData} actions={tableActions} />
 
       {totalPages > 1 && (
         <div className="flex justify-center items-center space-x-2 mt-6">
