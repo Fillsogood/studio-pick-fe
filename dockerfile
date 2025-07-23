@@ -2,9 +2,15 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-# 의존성 설치 (package-lock.json / yarn.lock 활용)
-COPY package.json yarn.lock* ./
-RUN npm ci
+# package.json 과 lockfile 복사
+COPY package.json yarn.lock* package-lock.json* ./
+
+# lockfile 종류에 따라 설치 분기
+RUN if [ -f package-lock.json ]; then \
+      npm ci; \
+    else \
+      npm install; \
+    fi
 
 # 소스 복사 및 빌드
 COPY . .
@@ -15,15 +21,16 @@ RUN npm run build
 FROM nginx:stable-alpine AS runtime
 WORKDIR /usr/share/nginx/html
 
-# 불필요한 기본 html 제거
+# 기본 html 파일 제거
 RUN rm -rf ./*
 
-# 빌드 산출물 복사
-COPY --from=builder /app/build .
+# 빌드 결과물 복사 (Vite 기본 출력: dist)
+COPY --from=builder /app/dist .
 
-# (선택) 커스텀 NGINX 설정이 있다면 복사
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# 커스텀 NGINX 설정 복사
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# 컨테이너가 리스닝할 포트
 EXPOSE 80
 
 # NGINX 포그라운드 실행
