@@ -1,33 +1,24 @@
 import React from "react";
 
+const FormField = ({ label, helper, children }) => (
+  <div className="space-y-1">
+    {label && <label className="block text-sm font-medium text-gray-700">{label}</label>}
+    {children}
+    {helper && <p className="text-right text-xs text-gray-400">{helper}</p>}
+  </div>
+);
+
 const ClassInfoStep = ({ form = {}, onChange, onBack, onNext }) => {
-  const formatPrice = (value) => {
-    if (!value) return "";
-    const numeric = value.toString().replace(/[^\d]/g, "");
-    return Number(numeric).toLocaleString();
-  };
+  const formatPrice = v => v ? Number(v.replace(/[^\d]/g, "")).toLocaleString() : "";
+  const parseRawPrice = v => v.replace(/[^\d]/g, "");
 
-  const parseRawPrice = (value) => {
-    return value.replace(/[^\d]/g, "");
-  };
-
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value } = e.target;
-    onChange((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    onChange(prev => ({ ...prev, [name]: value }));
   };
-
   const handleTimeChange = (e, field, unit) => {
-    const value = parseInt(e.target.value, 10);
-    onChange((prev) => ({
-      ...prev,
-      [field]: {
-        ...prev[field],
-        [unit]: value,
-      },
-    }));
+    const val = parseInt(e.target.value, 10) || 0;
+    onChange(prev => ({ ...prev, [field]: { ...prev[field], [unit]: val } }));
   };
 
   const isNextDisabled =
@@ -37,154 +28,138 @@ const ClassInfoStep = ({ form = {}, onChange, onBack, onNext }) => {
     !form.price ||
     !form.instructor ||
     !form.date ||
-    !form.startTime?.hour ||
-    !form.endTime?.hour ||
-    form.startTime.minute === "" ||
-    form.endTime.minute === "";
+    form.startTime?.hour == null ||
+    form.endTime?.hour == null;
 
   return (
-    <div className="space-y-6">
-      {/* 제목 */}
-      <div>
+    <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-lg space-y-8">
+      <h2 className="text-2xl font-semibold text-gray-800">클래스 정보 입력</h2>
+
+      <FormField label="제목" helper={`${(form.title||"").length}/30자`}>
         <input
           name="title"
-          value={form.title || ""}
-          onChange={handleChange}
-          placeholder="클래스 제목"
-          className="w-full border rounded px-4 py-3"
           maxLength={30}
+          value={form.title||""}
+          onChange={handleChange}
+          placeholder="클래스 제목을 입력하세요"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
-        <div className="text-right text-sm text-gray-400 mt-1">
-          {(form.title || "").length}/30자
-        </div>
-      </div>
+      </FormField>
 
-      {/* 설명 */}
-      <div>
+      <FormField label="설명" helper={`${(form.description||"").length}/최소 20자, 최대 2000자`}>
         <textarea
           name="description"
-          value={form.description || ""}
+          rows={5}
+          value={form.description||""}
           onChange={handleChange}
-          placeholder="클래스 설명을 입력해 주세요."
-          rows={6}
-          className="w-full border rounded px-4 py-3"
+          placeholder="클래스 설명을 입력해주세요"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
-        <div className="text-right text-sm text-gray-400 mt-1">
-          {(form.description || "").length}/최소 20자, 최대 2000자
-        </div>
-      </div>
+      </FormField>
 
-      {/* 가격 */}
-      <div>
+      <FormField label="가격(원)">
         <input
           type="text"
           name="price"
-          value={formatPrice(form.price)}
-          onChange={(e) => {
-            const raw = parseRawPrice(e.target.value);
-            onChange((prev) => ({ ...prev, price: raw }));
-          }}
-          placeholder="클래스 가격"
-          className="w-full border rounded px-4 py-3"
           inputMode="numeric"
+          value={formatPrice(form.price||"")}
+          onChange={e => {
+            const raw = parseRawPrice(e.target.value);
+            onChange(prev => ({ ...prev, price: raw }));
+          }}
+          placeholder="숫자만 입력"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
-      </div>
+      </FormField>
 
-      {/* 강사명 */}
-      <div>
+      <FormField label="강사 이름">
         <input
           name="instructor"
-          value={form.instructor || ""}
+          value={form.instructor||""}
           onChange={handleChange}
           placeholder="강사 이름"
-          className="w-full border rounded px-4 py-3"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
-      </div>
+      </FormField>
 
-      {/* 날짜 */}
-      <div>
+      <FormField label="날짜">
         <input
           type="date"
           name="date"
-          value={form.date || ""}
+          value={form.date||""}
           onChange={handleChange}
-          className="w-full border rounded px-4 py-3"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
+      </FormField>
+
+      <div className="grid grid-cols-2 gap-6">
+        <FormField label="시작 시간">
+          <div className="flex space-x-2">
+            <select
+              value={form.startTime?.hour ?? ""}
+              onChange={e => handleTimeChange(e, "startTime", "hour")}
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <option value="">시</option>
+              {Array.from({ length: 24 }).map((_, i) => (
+                <option key={i} value={i}>{i}시</option>
+              ))}
+            </select>
+            <select
+              value={form.startTime?.minute ?? ""}
+              onChange={e => handleTimeChange(e, "startTime", "minute")}
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <option value="">분</option>
+              {Array.from({ length: 60 }).map((_, m) => (
+                <option key={m} value={m}>{String(m).padStart(2, "0")}분</option>
+              ))}
+            </select>
+          </div>
+        </FormField>
+
+        <FormField label="종료 시간">
+          <div className="flex space-x-2">
+            <select
+              value={form.endTime?.hour ?? ""}
+              onChange={e => handleTimeChange(e, "endTime", "hour")}
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <option value="">시</option>
+              {Array.from({ length: 24 }).map((_, i) => (
+                <option key={i} value={i}>{i}시</option>
+              ))}
+            </select>
+            <select
+              value={form.endTime?.minute ?? ""}
+              onChange={e => handleTimeChange(e, "endTime", "minute")}
+              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <option value="">분</option>
+              {Array.from({ length: 60 }).map((_, m) => (
+                <option key={m} value={m}>{String(m).padStart(2, "0")}분</option>
+              ))}
+            </select>
+          </div>
+        </FormField>
       </div>
 
-      {/* 시간 */}
-      <div className="flex gap-4">
-        {/* 시작시간 */}
-        <div>
-          <label className="block text-sm mb-1">시작 시간</label>
-          <select
-            value={form.startTime?.hour ?? ""}
-            onChange={(e) => handleTimeChange(e, "startTime", "hour")}
-            className="border rounded px-2 py-1"
-          >
-            <option value="">시</option>
-            {[...Array(24)].map((_, i) => (
-              <option key={i} value={i}>{i}시</option>
-            ))}
-          </select>
-          <select
-            value={form.startTime?.minute ?? ""}
-            onChange={(e) => handleTimeChange(e, "startTime", "minute")}
-            className="border rounded px-2 py-1 ml-2"
-          >
-            <option value="">분</option>
-            {[...Array(60)].map((_, m) => (
-              <option key={m} value={m}>
-                {m.toString().padStart(2, "0")}분
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* 종료시간 */}
-        <div>
-          <label className="block text-sm mb-1">종료 시간</label>
-          <select
-            value={form.endTime?.hour ?? ""}
-            onChange={(e) => handleTimeChange(e, "endTime", "hour")}
-            className="border rounded px-2 py-1"
-          >
-            <option value="">시</option>
-            {[...Array(24)].map((_, i) => (
-              <option key={i} value={i}>{i}시</option>
-            ))}
-          </select>
-          <select
-            value={form.endTime?.minute ?? ""}
-            onChange={(e) => handleTimeChange(e, "endTime", "minute")}
-            className="border rounded px-2 py-1 ml-2"
-          >
-            <option value="">분</option>
-            {[...Array(60)].map((_, m) => (
-              <option key={m} value={m}>
-                {m.toString().padStart(2, "0")}분
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* 버튼 */}
-      <div className="flex justify-between items-center pt-4">
+      <div className="flex justify-between pt-6">
         <button
+          type="button"
           onClick={onBack}
-          className="text-sm px-4 py-2 rounded border border-gray-300 hover:bg-gray-100"
+          className="px-5 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
         >
           이전
         </button>
-
         <button
+          type="button"
           onClick={onNext}
           disabled={isNextDisabled}
-          className={`text-sm px-4 py-2 rounded ${
+          className={`px-6 py-2 rounded-md font-medium ${
             isNextDisabled
               ? "bg-gray-300 text-white cursor-not-allowed"
-              : "bg-black text-white"
+              : "bg-blue-600 text-white hover:bg-blue-700"
           }`}
         >
           다음
