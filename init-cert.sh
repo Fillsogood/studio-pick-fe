@@ -14,6 +14,7 @@ fi
 if [ -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
   echo "✅ 인증 완료 → SSL nginx.conf로 교체"
   cp /etc/nginx/conf.d/ssl.conf.template /etc/nginx/conf.d/default.conf
+  nginx -s reload
 fi
 
 # 포그라운드로 nginx 실행
