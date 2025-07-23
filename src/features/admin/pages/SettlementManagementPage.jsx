@@ -15,6 +15,7 @@ const SettlementManagementPage = () => {
       setLoading(true);
       const response = await adminSettlementAPI.getSettlementTargets();
       if (response.success) {
+        console.log(response.data.settlements);
         setSettlements(response.data.settlements || []);
       }
     } catch (err) {

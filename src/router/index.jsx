@@ -14,6 +14,7 @@ import ClassApplyPage from "../features/workshop/ClassRegisterPage.jsx";
 import ClassDetailPage from "../features/workshop/ClassDetailPage";
 import HostCenterPage from "../features/host/HostCenterPage.jsx";
 import StudioSearchPage from "../features/studio/StudioSearchPage.jsx";
+import ClassEditPage from "../features/host/ClassEditPage.jsx";
 
 import ProfilePage from "../features/user/ProfilePage";
 import NotificationSettingPage from "../features/user/NotificationSettingPage.jsx";
@@ -55,6 +56,7 @@ const AppRoutes = () => {
         <Route path="/reservation" element={<ReservationListPage />} />
         <Route path="/host" element={<HostCenterPage />} />
         <Route path="/host/classes" element={<ClassManagePage />} />
+        <Route path="/host/classes/:id/edit" element={<ClassEditPage />} />
         <Route
           path="/review/write/:reservationId"
           element={<ReviewWritePage />}
@@ -67,7 +69,6 @@ const AppRoutes = () => {
         <Route path="/classes/apply" element={<ClassApplyPage />} />
         <Route path="/classes" element={<ClassListPage />} />
         <Route path="/classes/:id" element={<ClassDetailPage />} />
-        <Route path="/studios/search" element={<StudioSearchPage />} />
         {/* 다른 페이지 추가 가능 */}
 
         {/* 마이페이지 영역 */}

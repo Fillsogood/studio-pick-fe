@@ -99,7 +99,9 @@ const CancelReservationModal = ({
     try {
       const response = await cancelReservation(reservation.id, cancelReason);
 
-      if (response.success) {
+      if (response.data?.success) {
+        console.log(response.data?.success)
+        console.log(response.data)
         onCancelSuccess(response.data);
         onClose();
       } else {
@@ -281,7 +283,7 @@ const CancelReservationModal = ({
             아니오
           </button>
           <button
-            onClick={handleCancelConfirm}
+            onClick={() => handleCancelConfirm(cancelReason)}
             className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={
               isLoading || (estimatedRefund && !estimatedRefund.canCancel)

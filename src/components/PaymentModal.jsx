@@ -79,6 +79,7 @@ const PaymentModal = ({
   // 결제 요청 데이터 생성
   useEffect(() => {
     if (isOpen && reservation) {
+      console.log("🚀 reservation 정보:", reservation);
       const data = {
         reservationId: reservation.id,
         amount: reservation.totalAmount,
@@ -100,6 +101,7 @@ const PaymentModal = ({
     setIsLoading(true);
     setError("");
     try {
+      console.log("[requestPayment] payload:", paymentData);
       const response = await requestPayment(paymentData);
       if (response.data.success) {
         const { orderId, clientKey } = response.data.data;

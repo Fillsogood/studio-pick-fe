@@ -27,6 +27,8 @@ const ReservationListPage = () => {
   const [apiError, setApiError] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedReservationId, setSelectedReservationId] = useState(null);
+  const [cancelReason, setCancelReason] = useState("단순 변심"); // 혹은 기본값 없이 ""로
+
 
   // 예약 목록 조회 API 호출
 
@@ -109,6 +111,17 @@ const ReservationListPage = () => {
     }
 
     return filtered;
+  };
+
+  const handleCancelSuccess = (updatedReservationData) => {
+    setReservations((prev) =>
+      prev.map((reservation) =>
+        reservation.id === updatedReservationData.reservationId
+          ? { ...reservation, status: updatedReservationData.status }
+          : reservation
+      )
+    );
+    alert("예약이 성공적으로 취소 요청되었습니다.");
   };
 
   // 예약 상세보기 처리
@@ -235,7 +248,7 @@ const ReservationListPage = () => {
           setShowCancelModal(false);
           setSelectedReservation(null);
         }}
-        onConfirm={handleCancelConfirm}
+        onCancelSuccess={handleCancelSuccess}
         reservation={selectedReservation}
         isLoading={isCancelling}
       />
