@@ -1,7 +1,7 @@
 # HTTP → HTTPS 리다이렉트
 server {
     listen 80;
-    server_name studio.studiopick.p-e.kr;
+    server_name studios.studiopick.p-e.kr;
 
     return 301 https://$host$request_uri;
 }
@@ -9,7 +9,7 @@ server {
 # HTTPS + 정적 파일 + 백엔드 API 프록시
 server {
     listen 443 ssl;
-    server_name studio.studiopick.p-e.kr;
+    server_name studios.studiopick.p-e.kr;
 
     ssl_certificate     /etc/letsencrypt/live/studio.studiopick.p-e.kr/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/studio.studiopick.p-e.kr/privkey.pem;
