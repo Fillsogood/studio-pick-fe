@@ -103,6 +103,5 @@ jobs:
             docker run -d \
               --name frontend-app \
               -p 443:443 \
-              -p 80:80 \
               --restart always \
               ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
