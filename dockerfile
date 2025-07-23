@@ -23,7 +23,6 @@ RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 COPY . .
 RUN npm run build
 
----
 
 ### 🔐 2단계: Nginx + Certbot + 정적 파일 배포
 
