@@ -1,21 +1,21 @@
+# .github/workflows/frontend-ci-cd.yml
 name: Frontend CI/CD
 
 on:
   push:
-    branches: [ develop ]        # develop 에 푸시 시
+    branches: [ develop ]
 
 jobs:
   # 1) 빌드 & 테스트
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - name: 코드 체크아웃
+      - name: Checkout 코드
         uses: actions/checkout@v3
 
       - name: Node.js 설치
         uses: actions/setup-node@v3
-        with:
-          node-version: 18
+        with: { node-version: '18' }
 
       - name: npm 캐시
         uses: actions/cache@v3
@@ -28,27 +28,27 @@ jobs:
       - name: 의존성 설치
         run: npm ci
 
+      - name: 유닛 테스트 (선택)
+        run: npm test -- --coverage
 
   # 2) Docker 이미지 빌드 & 푸시
   build-and-push:
     needs: build-and-test
     runs-on: ubuntu-latest
-    # 빌드시 VITE_* 환경변수를 Secrets에서 주입
     env:
       VITE_API_BASE_URL:             ${{ secrets.VITE_API_BASE_URL }}
       VITE_KAKAO_REST_API_KEY:       ${{ secrets.VITE_KAKAO_REST_API_KEY }}
       VITE_KAKAO_REDIRECT_URI:       ${{ secrets.VITE_KAKAO_REDIRECT_URI }}
-      VITE_KAKAO_LOGOUT_REDIRECT_URI: ${{ secrets.VITE_KAKAO_LOGOUT_REDIRECT_URI }}
+      VITE_KAKAO_LOGOUT_REDIRECT_URI:${{ secrets.VITE_KAKAO_LOGOUT_REDIRECT_URI }}
       VITE_KAKAO_MAP_KEY:            ${{ secrets.VITE_KAKAO_MAP_KEY }}
 
     steps:
-      - name: 코드 체크아웃
+      - name: Checkout 코드
         uses: actions/checkout@v3
 
       - name: Node.js 설치
         uses: actions/setup-node@v3
-        with:
-          node-version: 18
+        with: { node-version: '18' }
 
       - name: npm 캐시
         uses: actions/cache@v3
@@ -71,13 +71,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Docker 이미지 빌드 및 푸시
+      - name: Docker 이미지 빌드 & 푸시
         uses: docker/build-push-action@v4
         with:
           context: .
           file: ./Dockerfile
           push: true
-          # Dockerfile 의 ARG 로 전달
           build-args: |
             VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
             VITE_KAKAO_REST_API_KEY=${{ secrets.VITE_KAKAO_REST_API_KEY }}
@@ -88,6 +87,7 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/frontend:${{ github.sha }}
 
+  # 3) 서버 배포 (develop 브랜치 기준)
   deploy:
     if: github.ref == 'refs/heads/develop'
     needs: build-and-push
