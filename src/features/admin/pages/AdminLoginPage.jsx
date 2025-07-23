@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Shield, User, Lock, Unlock } from "lucide-react";
 import { Card, Button, Input } from "../components/common";
 import { useNavigate } from "react-router-dom";
-import { adminAuthAPI } from "@/lib/admin/adminauthAPI";
+import { adminAuthAPI } from "@/lib/admin/adminAuthAPI";
 
 const AdminLoginPage = () => {
   const [credentials, setCredentials] = useState({
