@@ -26,13 +26,8 @@ const WorkshopReservationModal = ({
         workshopId: workshop.id,
         userId: user?.id,
         reservationDate: workshop.date,
-        startTime: `${String(workshop.startHour || 0).padStart(
-          2,
-          "0"
-        )}:${String(workshop.startMinute || 0).padStart(2, "0")}:00`,
-        endTime: `${String(workshop.endHour || 0).padStart(2, "0")}:${String(
-          workshop.endMinute || 0
-        ).padStart(2, "0")}:00`,
+        startTime: workshop.startTime,
+        endTime: workshop.endTime,
         peopleCount: 1,
       };
       const response = await axiosInstance.post(
@@ -42,11 +37,11 @@ const WorkshopReservationModal = ({
       const data = response.data;
       if (!data.success) throw new Error(data.message || "예약 실패");
       setCreatedReservation(data.data);
+      console.log("예약 응답:", data.data);  // ✅ 여기 확인
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
         setShowPaymentModal(true);
-        // onClose(); // 결제 모달 닫힐 때까지 예약 모달 유지
       }, 1000);
     } catch (e) {
       setError(e.response?.data?.message || e.message || "예약 중 오류 발생");
@@ -58,14 +53,28 @@ const WorkshopReservationModal = ({
   const handlePaymentSuccess = (result) => {
     setShowPaymentModal(false);
     onReservationSuccess?.(result);
-    onClose(); // 결제 성공 시 예약 모달 닫기
+    onClose();
   };
+
   const handlePaymentError = (error) => {
     setShowPaymentModal(false);
-    onClose(); // 결제 실패 시 예약 모달 닫기
+    onClose();
   };
 
   if (!isOpen) return null;
+
+  // 시간 파싱 유틸
+  const parseTime = (timeStr) => {
+    if (!timeStr) return { hour: "00", minute: "00" };
+    const [hour, minute] = timeStr.split(":");
+    return {
+      hour: hour.padStart(2, "0"),
+      minute: minute.padStart(2, "0"),
+    };
+  };
+
+  const { hour: startHour, minute: startMinute } = parseTime(workshop.startTime);
+  const { hour: endHour, minute: endMinute } = parseTime(workshop.endTime);
 
   return (
     <>
@@ -83,21 +92,16 @@ const WorkshopReservationModal = ({
           </div>
 
           {/* 예약 완료 안내 */}
-          {showSuccess && (
+          {showSuccess ? (
             <div className="p-6 text-center">
               <div className="text-green-600 text-2xl font-bold mb-2">
                 공방 예약이 완료되었습니다!
               </div>
-              <div className="text-gray-600 text-sm">
-                곧 결제창이 열립니다...
-              </div>
+              <div className="text-gray-600 text-sm">곧 결제창이 열립니다...</div>
             </div>
-          )}
-
-          {/* 기존 예약 입력/정보 UI는 예약 완료 안내가 아닐 때만 표시 */}
-          {!showSuccess && (
+          ) : (
             <>
-              {/* 공방 정보 카드, 예약 입력 카드, 결제 금액 카드, 에러 메시지, 예약하기 버튼 등 기존 UI */}
+              {/* 공방 정보 카드 */}
               <div className="bg-white rounded-lg shadow-sm border mx-6 mt-6 mb-4 p-5 flex flex-col gap-2">
                 <div className="flex items-center gap-4">
                   {workshop.thumbnailUrl && (
@@ -128,13 +132,12 @@ const WorkshopReservationModal = ({
                   </div>
                   <div>
                     <span className="font-medium">수업 일정</span>:{" "}
-                    {workshop.date} {workshop.startHour || 0}:
-                    {(workshop.startMinute || 0).toString().padStart(2, "0")} ~{" "}
-                    {workshop.endHour || 0}:
-                    {(workshop.endMinute || 0).toString().padStart(2, "0")}
+                    {workshop.date} {startHour}:{startMinute} ~ {endHour}:{endMinute}
                   </div>
                 </div>
               </div>
+
+              {/* 예약 입력 */}
               <div className="bg-white rounded-lg shadow-sm border mx-6 mb-4 p-5 flex flex-col gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
@@ -159,11 +162,7 @@ const WorkshopReservationModal = ({
                       <input
                         type="text"
                         className="w-full border rounded px-3 py-2 bg-gray-50"
-                        value={`${workshop.startHour || 0}:${(
-                          workshop.startMinute || 0
-                        )
-                          .toString()
-                          .padStart(2, "0")}`}
+                        value={`${startHour}:${startMinute}`}
                         readOnly
                       />
                       <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -177,11 +176,7 @@ const WorkshopReservationModal = ({
                       <input
                         type="text"
                         className="w-full border rounded px-3 py-2 bg-gray-50"
-                        value={`${workshop.endHour || 0}:${(
-                          workshop.endMinute || 0
-                        )
-                          .toString()
-                          .padStart(2, "0")}`}
+                        value={`${endHour}:${endMinute}`}
                         readOnly
                       />
                       <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -206,12 +201,16 @@ const WorkshopReservationModal = ({
                   </div>
                 </div>
               </div>
+
+              {/* 결제 요약 */}
               <div className="bg-white rounded-lg shadow-sm border mx-6 mb-4 p-5 flex items-center justify-between">
                 <span className="text-gray-700 font-medium">수강료</span>
                 <span className="text-green-600 font-bold text-lg">
                   ₩{workshop.price?.toLocaleString()}
                 </span>
               </div>
+
+              {/* 에러 및 버튼 */}
               {error && (
                 <div className="text-red-500 text-sm text-center mb-2">
                   {error}
