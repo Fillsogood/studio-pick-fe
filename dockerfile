@@ -46,4 +46,4 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 EXPOSE 80 443
 
 # 컨테이너 실행 시 인증서 발급 및 Nginx 실행
-CMD ["/bin/sh", "-c", "/init-cert.sh && nginx -g 'daemon off;'"]
+ENTRYPOINT ["/init-cert.sh"]
