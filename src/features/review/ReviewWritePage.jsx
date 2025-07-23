@@ -33,7 +33,7 @@ const ReviewWritePage = () => {
       }
     } else {
       alert("예약 정보가 없습니다.");
-      navigate("/reservations");
+      navigate("/");
     }
     setIsLoading(false);
   }, [searchParams, navigate]);

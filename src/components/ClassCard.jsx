@@ -25,9 +25,6 @@ const ClassCard = ({ data, onReserveClick }) => {
           alt={title}
           className="w-full h-48 object-cover"
         />
-        <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
-          {data.category || "카테고리 없음"}
-        </div>
       </div>
       <div className="p-4">
         <h3 className="text-lg font-semibold mb-2 line-clamp-2">{title}</h3>
@@ -35,8 +32,10 @@ const ClassCard = ({ data, onReserveClick }) => {
         <div className="flex items-center justify-between mb-3">
           <span className="text-gray-500 text-sm">{date}</span>
           <div className="flex items-center">
-            <Star className="w-4 h-4 text-yellow-400 fill-current" />
-            <span className="text-sm ml-1">★{rating}</span>
+            <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+            <span className="text-sm text-gray-700">
+              {rating ? `${rating.toFixed(1)}` : "평점 없음"}
+            </span>
           </div>
         </div>
         <div className="flex items-center justify-between">
