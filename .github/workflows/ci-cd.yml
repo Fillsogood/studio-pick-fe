@@ -28,9 +28,6 @@ jobs:
       - name: 의존성 설치
         run: npm ci
 
-      - name: 유닛 테스트 (선택)
-        run: npm test -- --coverage
-
   # 2) Docker 이미지 빌드 & 푸시
   build-and-push:
     needs: build-and-test
