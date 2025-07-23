@@ -8,13 +8,12 @@ import StudioListPage from "../features/studio/StudioListPage.jsx";
 import StudioDetailPage from "../features/studio/StudioDetailPage.jsx";
 import ForgotPasswordPage from "../features/user/ForgotPasswordPage.jsx";
 import StudioApplyPage from "../features/studio/StudioApplyPage.jsx";
-import MyStudioManagePage from "../features/studio/MyStudioManagePage.jsx";
 import StudioSetupPage from "../features/studio/StudioSetupPage.jsx";
 import ClassApplyPage from "../features/workshop/ClassRegisterPage.jsx";
 import ClassDetailPage from "../features/workshop/ClassDetailPage";
 import HostCenterPage from "../features/host/HostCenterPage.jsx";
-import StudioSearchPage from "../features/studio/StudioSearchPage.jsx";
 import ClassEditPage from "../features/host/ClassEditPage.jsx";
+import StudioManagePage from "../features/studio/StudioManagePage.jsx";
 
 import ProfilePage from "../features/user/ProfilePage";
 import NotificationSettingPage from "../features/user/NotificationSettingPage.jsx";
@@ -61,6 +60,8 @@ const AppRoutes = () => {
           path="/review/write/:reservationId"
           element={<ReviewWritePage />}
         />
+        <Route path="/host/studios" element={<StudioManagePage />} />
+        <Route path="/host/studios/:studioId/setup" element={<StudioSetupPage />} />
         <Route path="/review/edit/:reviewId" element={<ReviewEditPage />} />
         <Route path="/studios" element={<StudioListPage />} />
         <Route path="/studios/:studioId" element={<StudioDetailPage />} />
@@ -75,8 +76,6 @@ const AppRoutes = () => {
         <Route path="account" element={<MyPageLayout />}>
           <Route path="profile" element={<ProfilePage />} />
           <Route path="notification" element={<NotificationSettingPage />} />
-          <Route path="studios" element={<MyStudioManagePage />} />
-          <Route path="studios/:studioId/setup" element={<StudioSetupPage />} />
         </Route>
       </Route>
       {/* 어드민 전용 라우트 */}
