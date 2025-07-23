@@ -15,6 +15,7 @@ const ClassCard = ({ item, onRemove, onToggle }) => {
   };
   const { label, class: statusClass } = statusMap[item.status] || statusMap.pending;
 
+  // 삭제 버튼 클릭 시 확인창 띄우고 onRemove 호출
   const handleRemove = () => {
     if (window.confirm("정말 이 클래스를 삭제하시겠습니까?")) {
       onRemove(item.id);
