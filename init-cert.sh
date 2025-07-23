@@ -2,10 +2,10 @@
 
 DOMAIN="studio.studiopick.p-e.kr"
 
-# 인증서 없으면 발급
+# 인증서 없으면 standalone 모드로 발급
 if [ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
   echo "📢 인증서 없음 → 발급 시도 중..."
-  certbot certonly --non-interactive --agree-tos --nginx \
+  certbot certonly --non-interactive --agree-tos --standalone \
     -d $DOMAIN \
     -m qkswkd1122@gmail.com
 fi
