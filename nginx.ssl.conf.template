@@ -11,8 +11,8 @@ server {
     listen 443 ssl;
     server_name studios.studiopick.p-e.kr;
 
-    ssl_certificate     /etc/letsencrypt/live/studio.studiopick.p-e.kr/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/studio.studiopick.p-e.kr/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/studios.studiopick.p-e.kr/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/studios.studiopick.p-e.kr/privkey.pem;
 
     root /usr/share/nginx/html;
     index index.html;
