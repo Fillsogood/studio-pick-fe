@@ -32,7 +32,8 @@ FROM nginx:stable-alpine
 RUN apk add --no-cache certbot certbot-nginx bash curl
 
 # Nginx 설정 복사
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.http.conf /etc/nginx/conf.d/default.conf         # 최초 HTTP-only
+COPY nginx.ssl.conf.template /etc/nginx/conf.d/ssl.conf.template
 
 # 인증서 발급 스크립트 복사
 COPY init-cert.sh /init-cert.sh
