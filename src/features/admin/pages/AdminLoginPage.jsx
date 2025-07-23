@@ -55,7 +55,7 @@ const AdminLoginPage = () => {
               <Input
                 type="text"
                 placeholder="관리자 아이디를 입력하세요"
-                value={credentials.username}
+                value={credentials.email}
                 onChange={(e) =>
                   setCredentials({ ...credentials, email: e.target.value })
                 }
