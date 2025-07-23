@@ -1,0 +1,107 @@
+# .github/workflows/frontend-ci-cd.yml
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  # 1) 빌드 & 테스트
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 코드
+        uses: actions/checkout@v3
+
+      - name: Node.js 설치
+        uses: actions/setup-node@v3
+        with: { node-version: '18' }
+
+      - name: npm 캐시
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: 의존성 설치
+        run: npm ci
+
+  # 2) Docker 이미지 빌드 & 푸시
+  build-and-push:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    env:
+      VITE_API_BASE_URL:             ${{ secrets.VITE_API_BASE_URL }}
+      VITE_KAKAO_REST_API_KEY:       ${{ secrets.VITE_KAKAO_REST_API_KEY }}
+      VITE_KAKAO_REDIRECT_URI:       ${{ secrets.VITE_KAKAO_REDIRECT_URI }}
+      VITE_KAKAO_LOGOUT_REDIRECT_URI: ${{ secrets.VITE_KAKAO_LOGOUT_REDIRECT_URI }}
+      VITE_KAKAO_MAP_KEY:            ${{ secrets.VITE_KAKAO_MAP_KEY }}
+
+    steps:
+      - name: Checkout 코드
+        uses: actions/checkout@v3
+
+      - name: Node.js 설치
+        uses: actions/setup-node@v3
+        with: { node-version: '18' }
+
+      - name: npm 캐시
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 프로덕션 빌드
+        run: npm run build
+
+      - name: Docker 로그인
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Docker 이미지 빌드 & 푸시
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          build-args: |
+            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
+            VITE_KAKAO_REST_API_KEY=${{ secrets.VITE_KAKAO_REST_API_KEY }}
+            VITE_KAKAO_REDIRECT_URI=${{ secrets.VITE_KAKAO_REDIRECT_URI }}
+            VITE_KAKAO_LOGOUT_REDIRECT_URI=${{ secrets.VITE_KAKAO_LOGOUT_REDIRECT_URI }}
+            VITE_KAKAO_MAP_KEY=${{ secrets.VITE_KAKAO_MAP_KEY }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/frontend:${{ github.sha }}
+
+  # 3) 서버 배포 (develop 브랜치 기준)
+  deploy:
+    if: github.ref == 'refs/heads/develop'
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH로 서버에 배포
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
+            docker stop frontend-app || true
+            docker rm   frontend-app || true
+            docker run -d \
+              --name frontend-app \
+              -p 80:80 \
+              --restart always \
+              ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest

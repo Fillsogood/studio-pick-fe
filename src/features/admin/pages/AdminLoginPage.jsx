@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Shield, User, Lock, Unlock } from "lucide-react";
 import { Card, Button, Input } from "../components/common";
 import { useNavigate } from "react-router-dom";
-import { adminAuthAPI } from "@/lib/admin/adminauthAPI";
+import { adminAuthAPI } from "@/lib/admin/adminAuthAPI";
 
 const AdminLoginPage = () => {
   const [credentials, setCredentials] = useState({
@@ -55,7 +55,7 @@ const AdminLoginPage = () => {
               <Input
                 type="text"
                 placeholder="관리자 아이디를 입력하세요"
-                value={credentials.username}
+                value={credentials.email}
                 onChange={(e) =>
                   setCredentials({ ...credentials, email: e.target.value })
                 }

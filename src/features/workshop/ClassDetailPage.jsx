@@ -137,6 +137,13 @@ const ClassDetailPage = () => {
 
   return (
     <div className="max-w-[1100px] mx-auto py-10 px-4">
+      {/* 🔙 이전 버튼 */}
+      <button
+        onClick={() => navigate("/classes")}
+        className="mb-6 text-black hover:text-gray-600 inline-flex items-center text-mideum font-medium"
+      >
+        ← 이전으로
+      </button>
       {/* 상단 두 컬럼 영역 */}
       <div className="flex items-start gap-10 mb-12">
         {/* 이미지 영역 - 슬라이더 */}

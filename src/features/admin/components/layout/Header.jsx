@@ -2,7 +2,7 @@ import React from 'react';
 import { Bell, Search, User, LogOut } from 'lucide-react';
 import { Button } from '../common';
 import { useNavigate } from 'react-router-dom';
-import { adminAuthAPI } from '@/lib/admin/adminauthAPI';
+import { adminAuthAPI } from '@/lib/admin/adminAuthAPI';
 
 const Header = ({ title, subtitle, actions, showSearch = true, userName = '관리자' }) => {
   const navigate = useNavigate();
