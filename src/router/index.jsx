@@ -13,6 +13,7 @@ import StudioSetupPage from "../features/studio/StudioSetupPage.jsx";
 import ClassApplyPage from "../features/workshop/ClassRegisterPage.jsx";
 import ClassDetailPage from "../features/workshop/ClassDetailPage";
 import HostCenterPage from "../features/host/HostCenterPage.jsx";
+import ClassEditPage from "../features/host/ClassEditPage.jsx";
 
 import ProfilePage from "../features/user/ProfilePage";
 import NotificationSettingPage from "../features/user/NotificationSettingPage.jsx";
@@ -54,6 +55,7 @@ const AppRoutes = () => {
         <Route path="/reservation" element={<ReservationListPage />} />
         <Route path="/host" element={<HostCenterPage />} />
         <Route path="/host/classes" element={<ClassManagePage />} />
+        <Route path="/host/classes/:id/edit" element={<ClassEditPage />} />
         <Route
           path="/review/write/:reservationId"
           element={<ReviewWritePage />}

@@ -3,17 +3,23 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const ClassCard = ({ item, onRemove, onRefresh, onToggle }) => {
+const ClassCard = ({ item, onRemove, onToggle }) => {
   const navigate = useNavigate();
 
   // 상태별 텍스트와 스타일 매핑
   const statusMap = {
     active:   { label: "모집중",    class: "text-green-600"  },
     hide:     { label: "숨김",      class: "text-gray-500"   },
-    inactive: { label: "거절됨",    class: "text-red-600"    }, // 관리자 거절
+    inactive: { label: "거절됨",    class: "text-red-600"    },
     pending:  { label: "승인대기",  class: "text-yellow-600" }
   };
   const { label, class: statusClass } = statusMap[item.status] || statusMap.pending;
+
+  const handleRemove = () => {
+    if (window.confirm("정말 이 클래스를 삭제하시겠습니까?")) {
+      onRemove(item.id);
+    }
+  };
 
   return (
     <div className="border border-gray-300 rounded-2xl shadow-md p-6 bg-neutral-50 flex flex-col justify-between hover:shadow-xl transition">
@@ -42,7 +48,7 @@ const ClassCard = ({ item, onRemove, onRefresh, onToggle }) => {
         {/* 삭제 (UI에서만 제거) */}
         <button
           className="text-base px-4 py-1.5 rounded-md bg-red-100 text-red-700 hover:bg-red-200"
-          onClick={() => onRemove(item.id)}
+          onClick={handleRemove}
         >
           삭제
         </button>
@@ -65,14 +71,14 @@ const ClassCard = ({ item, onRemove, onRefresh, onToggle }) => {
           </button>
         )}
 
-        {/* 승인 대기중 (토글 버튼 없음) */}
+        {/* 승인 대기중 */}
         {item.status === "pending" && (
           <span className="text-base px-4 py-1.5 rounded-md bg-yellow-100 text-yellow-700">
             승인 대기중
           </span>
         )}
-        
-        {/* 관리자 거절된 항목은 버튼 없이 표시만 */}
+
+        {/* 관리자 거절된 항목 */}
         {item.status === "inactive" && (
           <span className="text-base px-4 py-1.5 rounded-md bg-red-100 text-red-700">
             거절됨
