@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { loadKakaoMapScript } from '../lib/kakaoAPI';
+import { loadKakaoMapScript } from '../lib/KakaoAPI';
 
 export default function KakaoMap({ location }) {
     const mapRef = useRef(null); // 지도 인스턴스를 저장할 ref
