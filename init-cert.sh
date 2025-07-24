@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DOMAIN="studio.studiopick.p-e.kr"
+DOMAIN="studioss.studiopick.p-e.kr"
 EMAIL="qkswkd1122@gmail.com"
 CERT_PATH="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
 
