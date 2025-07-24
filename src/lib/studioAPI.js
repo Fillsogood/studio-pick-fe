@@ -5,12 +5,11 @@ import axiosInstance from "./axiosInstance";
 //   axiosInstance.get("/api/studios", { params });
 
 export const getStudios = (safeParams) => {
-  console.log("✅ getStudios() 요청 파라미터:", safeParams); // 📌 콘솔 로그 추가!
   return axiosInstance.get("/api/studios", { params: safeParams });
 };
 
 // 스튜디오 검색
-export const searchStudios = (params) =>
+export const activeStudios = (params) =>
   axiosInstance.get("/api/studios/search", { params });
 
 // 스튜디오 상세 조회
@@ -56,3 +55,7 @@ export const updateStudio = (studioId, data) =>
 // 스튜디오 삭제 (비활성화 처리 등)
 export const deleteStudio = (studioId) =>
   axiosInstance.delete(`/api/studios/${studioId}/deactivate`);
+
+export const toggleStudioVisibility = (studioId) => {
+  return axiosInstance.patch(`/api/studios/${studioId}/toggle-visibility`);
+};
