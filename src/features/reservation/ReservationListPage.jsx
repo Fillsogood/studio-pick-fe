@@ -312,7 +312,7 @@ const ReservationListPage = () => {
               onClick={() => setActiveTab(tab)}
               className={`py-3 px-1 border-b-2 font-medium text-base ${
                 activeTab === tab
-                  ? "border-lime-500 text-lime-600"
+                  ? "border-WarmBeige-500 text-WarmBeige-500"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
@@ -339,7 +339,7 @@ const ReservationListPage = () => {
               }}
               className={`px-5 py-2 rounded-lg text-base font-medium transition-colors ${
                 activeFilter === filter
-                  ? "bg-lime-300 text-black shadow-sm"
+                  ? "bg-WarmBeige-300 text-black shadow-sm"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -361,7 +361,7 @@ const ReservationListPage = () => {
               } 검색`}
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-300 focus:border-transparent text-base"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-WarmBeige-300 focus:border-transparent text-base"
             />
             <svg
               className="absolute left-3 top-3 h-5 w-5 text-gray-400"
@@ -382,7 +382,7 @@ const ReservationListPage = () => {
 
       {isLoading ? (
         <div className="text-center py-16">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-lime-500"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-WarmBeige-500"></div>
           <p className="text-gray-500 text-lg mt-4">
             예약 목록을 불러오는 중...
           </p>

@@ -176,7 +176,7 @@ const RegisterPage = () => {
 
           <button
             type="submit"
-            className="w-full bg-lime-300 hover:bg-lime-200 text-black font-semibold py-2 rounded-md"
+            className="w-full bg-WarmBeige-300 hover:bg-WarmBeige-200 text-black font-semibold py-2 rounded-md"
           >
             회원가입
           </button>
