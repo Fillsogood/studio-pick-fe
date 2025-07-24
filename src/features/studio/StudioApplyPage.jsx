@@ -7,6 +7,7 @@ import { useDropzone } from "react-dropzone";
 import { uploadImages } from "../../lib/studioAPI";
 import { applyStudio } from "../../lib/studioApplicationAPI";
 import { getMyProfile } from "../../lib/userAPI";
+import LoginModal from "../../components/LoginModal";
 
 export default function StudioApplyPage() {
   const { register, handleSubmit, setValue } = useForm();
@@ -25,6 +26,8 @@ export default function StudioApplyPage() {
   const [imageUrls, setImageUrls] = useState([]); // S3 업로드 후 받은 URL들
   const [thumbnailPreview, setThumbnailPreview] = useState("");
   const [thumbnailError, setThumbnailError] = useState("");
+  const [phone, setPhone] = useState("");
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const navigate = useNavigate();
 
@@ -37,46 +40,19 @@ export default function StudioApplyPage() {
       "image/png": [".png"],
     },
     maxFiles: 1,
-    maxSize: 5 * 1024 * 1024,
+    maxSize: 10 * 1024 * 1024,
     onDrop: async (acceptedFiles, fileRejections) => {
       if (fileRejections.length > 0) {
         setThumbnailError(
-          "JPG, PNG 파일만 첨부 가능하며 1MB 이하만 가능합니다."
+          "JPG, PNG 파일만 첨부 가능하며 10MB 이하만 가능합니다."
         );
         setThumbnailPreview(null);
         setThumbnailImage(null);
         return;
       }
-
-      try {
-        setThumbnailError("");
-        const file = acceptedFiles[0];
-        const previewUrl = URL.createObjectURL(file);
-        setThumbnailPreview(previewUrl);
-
-        // S3 업로드 - 썸네일은 단일 URL만 저장
-        const formData = new FormData();
-        formData.append("images", file);
-
-        const uploadResponse = await uploadImages(formData);
-        console.log("썸네일 업로드 응답:", uploadResponse);
-
-        // uploadStudioImages는 이미 response.data.data를 반환하므로 직접 사용
-        const uploadedUrls = uploadResponse.data.data;
-        setImageUrls(uploadedUrls);
-        console.log("추출된 URL들:", uploadedUrls);
-
-        if (uploadedUrls && uploadedUrls.length > 0) {
-          setThumbnailImage(uploadedUrls);
-        } else {
-          throw new Error("업로드된 이미지 URL을 받지 못했습니다.");
-        }
-      } catch (error) {
-        console.error("썸네일 업로드 실패:", error);
-        setThumbnailError("썸네일 업로드에 실패했습니다.");
-        setThumbnailPreview(null);
-        setThumbnailImage(null);
-      }
+      const file = acceptedFiles[0];
+      setThumbnailPreview(URL.createObjectURL(file));
+      setThumbnailImage(file); // ✅ 파일 객체 저장
     },
   });
 
@@ -90,36 +66,19 @@ export default function StudioApplyPage() {
     },
     maxFiles: 5,
     maxSize: 10 * 1024 * 1024,
-    onDrop: async (acceptedFiles, fileRejections) => {
+    onDrop: (acceptedFiles, fileRejections) => {
       if (fileRejections.length > 0) {
         setStudioImagesError(
-          "JPG, PNG 파일만 첨부 가능하며 50MB 이하, 최대 5장까지 업로드 가능합니다."
+          "JPG, PNG 파일만 첨부 가능하며 10MB 이하, 최대 5장까지 업로드 가능합니다."
         );
         setPreviewImages([]);
-        setImageUrls([]);
+        setImageUrls([]); // 미리 초기화
         return;
       }
 
-      try {
-        setStudioImagesError("");
-        const urls = acceptedFiles.map((file) => URL.createObjectURL(file));
-        setPreviewImages(urls);
-        // S3 업로드
-        const formData = new FormData();
-        acceptedFiles.forEach((file) => formData.append("images", file));
-
-        const uploadResponse = await uploadImages(formData);
-        const uploadedUrls = uploadResponse.data.data;
-        setImageUrls(uploadedUrls);
-        console.log("드롭존 이미지 업로드 응답:", uploadResponse);
-
-        // uploadStudioImages는 이미 response.data.data를 반환하므로 직접 사용
-      } catch (error) {
-        console.error("이미지 업로드 실패:", error);
-        setStudioImagesError("이미지 업로드에 실패했습니다.");
-        setPreviewImages([]);
-        setImageUrls([]);
-      }
+      const previews = acceptedFiles.map((file) => URL.createObjectURL(file));
+      setPreviewImages(previews);
+      setImageUrls(acceptedFiles); // ✅ 파일만 저장
     },
   });
 
@@ -236,6 +195,25 @@ export default function StudioApplyPage() {
     try {
       const fullAddress = address + " " + addressDetail;
 
+      let thumbnailUrl = "";
+      let uploadedImageUrls = [];
+
+      // 썸네일 업로드
+      if (thumbnailImage instanceof File) {
+        const formData = new FormData();
+        formData.append("images", thumbnailImage);
+        const res = await uploadImages(formData);
+        thumbnailUrl = res.data.data[0];
+      }
+
+      // 일반 이미지 업로드
+      if (imageUrls.length > 0 && imageUrls[0] instanceof File) {
+        const formData = new FormData();
+        imageUrls.forEach((file) => formData.append("images", file));
+        const res = await uploadImages(formData);
+        uploadedImageUrls = res.data.data;
+      }
+
       // JSON 객체로 payload 생성
       const payload = {
         name: data.name,
@@ -243,8 +221,8 @@ export default function StudioApplyPage() {
         location: fullAddress,
         phone: data.phone,
         size: data.size,
-        thumbnailImage: thumbnailImage[0], // 단일 URL
-        images: imageUrls, // 배열
+        thumbnailImage: thumbnailUrl, // 단일 URL
+        images: uploadedImageUrls, // 배열
       };
 
       console.log("전송할 데이터:", payload);
@@ -261,12 +239,56 @@ export default function StudioApplyPage() {
     }
   };
 
+  const formatPhone = (value) => {
+    const numbersOnly = value.replace(/\D/g, "");
+
+    if (numbersOnly.startsWith("02")) {
+      // 서울 지역번호 (02) -> 10자리
+      if (numbersOnly.length < 3) return numbersOnly;
+      if (numbersOnly.length < 6)
+        return `${numbersOnly.slice(0, 2)}-${numbersOnly.slice(2)}`;
+      if (numbersOnly.length < 10)
+        return `${numbersOnly.slice(0, 2)}-${numbersOnly.slice(
+          2,
+          5
+        )}-${numbersOnly.slice(5)}`;
+      return `${numbersOnly.slice(0, 2)}-${numbersOnly.slice(
+        2,
+        6
+      )}-${numbersOnly.slice(6, 10)}`;
+    } else {
+      // 휴대폰 또는 기타 지역번호
+      if (numbersOnly.length < 4) return numbersOnly;
+      if (numbersOnly.length < 7)
+        return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(3)}`;
+      if (numbersOnly.length < 11)
+        return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(
+          3,
+          6
+        )}-${numbersOnly.slice(6)}`;
+      return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(
+        3,
+        7
+      )}-${numbersOnly.slice(7, 11)}`;
+    }
+  };
+
+  const handleChange = (e) => {
+    setPhone(formatPhone(e.target.value));
+  };
+
   const handleCompleteDaumPost = (data) => {
     const fullAddress =
       data.address + (data.buildingName ? ` (${data.buildingName})` : "");
     setAddress(fullAddress);
     setIsModalOpen(false);
   };
+
+  useEffect(() => {
+    if (!isLoggedIn && !showLoginModal) {
+      setShowLoginModal(true);
+    }
+  }, [isLoggedIn]);
 
   if (isLoggedIn === null) {
     return (
@@ -278,30 +300,17 @@ export default function StudioApplyPage() {
     );
   }
 
-  if (!isLoggedIn) {
+  if (!isLoggedIn && showLoginModal) {
     return (
-      <Dialog
-        open={showModal}
-        onClose={() => setShowModal(false)}
-        className="fixed z-50 inset-0 flex items-center justify-center bg-black bg-opacity-40"
-      >
-        <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full">
-          <Dialog.Title className="text-lg font-bold">
-            로그인이 필요합니다
-          </Dialog.Title>
-          <p className="mt-2">
-            스튜디오 운영 신청은 로그인 후 이용 가능합니다.
-          </p>
-          <div className="mt-4 text-right">
-            <button
-              onClick={() => navigate("/")}
-              className="bg-lime-500 hover:bg-lime-600 text-white px-4 py-2 rounded"
-            >
-              확인
-            </button>
-          </div>
-        </div>
-      </Dialog>
+      <LoginModal
+        onClose={() => {
+          setShowLoginModal(false);
+          navigate("/");
+        }}
+        onLoginSuccess={() => {
+          setShowLoginModal(false);
+        }}
+      />
     );
   }
 
@@ -326,7 +335,7 @@ export default function StudioApplyPage() {
               <input
                 {...register("name", { required: true })}
                 placeholder="스튜디오 이름을 입력해주세요"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
               />
             </div>
 
@@ -355,7 +364,13 @@ export default function StudioApplyPage() {
               <input
                 {...register("phone", { required: true })}
                 placeholder="전화번호를 입력해주세요"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                type="tel"
+                value={phone}
+                onChange={handleChange}
+                inputMode="numeric"
+                maxLength={13}
+                defaultValue={myProfile.phone}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
               />
             </div>
 
@@ -366,7 +381,7 @@ export default function StudioApplyPage() {
               <textarea
                 {...register("description", { required: true })}
                 placeholder="스튜디오에 대한 상세한 설명을 입력해주세요"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent h-48 resize-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent h-48 resize-none"
               />
             </div>
 
@@ -379,7 +394,7 @@ export default function StudioApplyPage() {
                   value={sizeInput}
                   onChange={handleSizeChange}
                   placeholder="예: 10"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                 />
                 {sizeInput && (
                   <div className="text-sm text-gray-600">
@@ -440,7 +455,7 @@ export default function StudioApplyPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(true)}
-                  className="px-6 py-3 bg-lime-300 text-black border border-lime-200 rounded-lg hover:bg-lime-200 transition-colors font-medium"
+                  className="px-6 py-3 bg-WarmBeige-300 text-black border border-WarmBeige-200 rounded-lg hover:bg-WarmBeige-200 transition-colors font-medium"
                 >
                   주소등록
                 </button>
@@ -450,7 +465,7 @@ export default function StudioApplyPage() {
                 value={addressDetail}
                 onChange={(e) => setAddressDetail(e.target.value)}
                 placeholder="상세 주소"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
               />
             </div>
           </div>
@@ -467,7 +482,7 @@ export default function StudioApplyPage() {
               <div className="flex gap-3">
                 <div
                   {...getThumbnailRootProps()}
-                  className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-lime-400 hover:bg-lime-50 transition-colors"
+                  className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-WarmBeige-300 hover:bg-WarmBeige-50 transition-colors"
                 >
                   <input {...getThumbnailInputProps()} />
                   {thumbnailPreview ? (
@@ -521,7 +536,7 @@ export default function StudioApplyPage() {
                     </div>
                   )}
                 </div>
-                <div className="px-6 py-3 bg-lime-300 text-black border border-lime-200 rounded-lg hover:bg-lime-200 transition-colors font-medium cursor-pointer flex items-center whitespace-nowrap">
+                <div className="px-6 py-3 bg-WarmBeige-300 text-black border border-WarmBeige-200 rounded-lg hover:bg-WarmBeige-200 transition-colors font-medium cursor-pointer flex items-center whitespace-nowrap">
                   <input
                     type="file"
                     accept="image/jpeg,image/png"
@@ -599,7 +614,7 @@ export default function StudioApplyPage() {
               <div className="flex gap-3">
                 <div
                   {...getStudioRootProps()}
-                  className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-lime-400 hover:bg-lime-50 transition-colors"
+                  className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-WarmBeige-300 hover:bg-WarmBeige-50 transition-colors"
                 >
                   <input {...getStudioInputProps()} multiple />
 
@@ -659,7 +674,7 @@ export default function StudioApplyPage() {
                   )}
                 </div>
 
-                <div className="px-6 py-3 bg-lime-300 text-black border border-lime-200 rounded-lg hover:bg-lime-200 transition-colors font-medium cursor-pointer flex items-center whitespace-nowrap">
+                <div className="px-6 py-3 bg-WarmBeige-300 text-black border border-WarmBeige-200 rounded-lg hover:bg-WarmBeige-200 transition-colors font-medium cursor-pointer flex items-center whitespace-nowrap">
                   <input
                     type="file"
                     accept="image/jpeg,image/png"
@@ -694,7 +709,7 @@ export default function StudioApplyPage() {
             </button>
             <button
               type="submit"
-              className="bg-lime-300 text-black border border-lime-200 px-6 py-3 rounded hover:bg-lime-200 transition-colors font-medium"
+              className="bg-WarmBeige-300 text-black border border-WarmBeige-200 px-6 py-3 rounded hover:bg-WarmBeige-200 transition-colors font-medium"
             >
               신청하기
             </button>

@@ -2,6 +2,9 @@ import { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { MapPin, Phone, Users, Calendar } from "lucide-react";
+import PaymentModal from "./PaymentModal";
+import axiosInstance from "../lib/axiosInstance";
+import { useAuth } from "../hooks/useAuth";
 
 const generateTimeSlots = (start, end) => {
   const slots = [];
@@ -23,7 +26,13 @@ const weekdayLabels = {
   sun: "일",
 };
 
-const StudioReservationModal = ({ isOpen, onClose, studio, onSuccess }) => {
+const StudioReservationModal = ({
+  isOpen,
+  onClose,
+  studio,
+  onSuccess,
+  onReservationSuccess,
+}) => {
   const [reservationDate, setReservationDate] = useState(null);
   const [selectedStart, setSelectedStart] = useState(null);
   const [selectedEnd, setSelectedEnd] = useState(null);
@@ -31,6 +40,11 @@ const StudioReservationModal = ({ isOpen, onClose, studio, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [paymentDone, setPaymentDone] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [createdReservation, setCreatedReservation] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const { user } = useAuth();
 
   if (!isOpen || !studio) return null;
 
@@ -82,6 +96,19 @@ const StudioReservationModal = ({ isOpen, onClose, studio, onSuccess }) => {
     }
   };
 
+  const handlePaymentSuccess = (result) => {
+    setShowPaymentModal(false);
+    onReservationSuccess?.(result);
+    onClose();
+  };
+
+  const handlePaymentError = (rror) => {
+    setShowPaymentModal(false);
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
   const handlePayment = () => {
     if (!reservationDate || !isDateAllowed(reservationDate)) {
       setError("선택한 날짜는 운영하지 않는 요일입니다.");
@@ -99,159 +126,185 @@ const StudioReservationModal = ({ isOpen, onClose, studio, onSuccess }) => {
     setLoading(true);
     setError("");
     try {
-      const parseTime = (t) => {
-        const [hour, minute] = t.split(":".map(Number));
-        return { hour, minute, second: 0, nano: 0 };
-      };
+      const parseTime = (t) => `${t}:00`;
       const payload = {
         studioId: studio.id,
+        userId: user?.id,
         reservationDate: reservationDate.toISOString().split("T")[0],
         startTime: parseTime(selectedStart),
         endTime: parseTime(selectedEnd),
         peopleCount,
         totalAmount,
       };
-      const res = await fetch("/api/reservations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
+      const response = await axiosInstance.post(
+        "/api/reservations/studio",
+        payload
+      );
+      const data = response.data;
       if (!data.success) throw new Error(data.message || "예약 실패");
-      onSuccess(data.data);
+      setCreatedReservation(data.data);
+      console.log("예약 응답:", data.data);
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        setShowPaymentModal(true);
+      }, 1000);
     } catch (e) {
-      setError(e.message || "예약 중 오류 발생");
+      setError(e.response?.data?.message || e.message || "예약 중 오류 발생");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto max-h-[90vh] overflow-y-auto flex flex-col">
-        <div className="flex items-center justify-between px-6 pt-6 pb-2 border-b border-gray-200">
-          <h2 className="text-lg font-bold">스튜디오 예약</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl"
-          >
-            ×
-          </button>
-        </div>
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto max-h-[90vh] overflow-y-auto flex flex-col">
+          <div className="flex items-center justify-between px-6 pt-6 pb-2 border-b border-gray-200">
+            <h2 className="text-lg font-bold">스튜디오 예약</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 text-xl"
+            >
+              ×
+            </button>
+          </div>
 
-        <div className="p-6 space-y-4">
-          <div className="flex items-center gap-4">
-            <img
-              src={studio.thumbnailImage}
-              alt="썸네일"
-              className="w-16 h-16 rounded object-cover border"
-            />
-            <div className="text-sm">
-              <div className="font-bold text-base text-gray-800">
-                {studio.name}
+          {showSuccess ? (
+            <div className="p-6 text-center">
+              <div className="text-green-600 text-2xl font-bold mb-2">
+                공방 예약이 완료되었습니다!
               </div>
-              <div className="text-gray-600">
-                요금: ₩{studio.hourlyBaseRate?.toLocaleString()} / 시간
-              </div>
-              <div className="text-gray-600">
-                운영 요일:{" "}
-                {availableWeekdays?.map((w) => weekdayLabels[w]).join(", ")}
-              </div>
-              <div className="text-gray-600">
-                운영 시간: {openTime} ~ {closeTime}
+              <div className="text-gray-600 text-sm">
+                곧 결제창이 열립니다...
               </div>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-4">
+                  <img
+                    src={studio.thumbnailImage}
+                    alt="썸네일"
+                    className="w-16 h-16 rounded object-cover border"
+                  />
+                  <div className="text-sm">
+                    <div className="font-bold text-base text-gray-800">
+                      {studio.name}
+                    </div>
+                    <div className="text-gray-600">
+                      요금: ₩{studio.hourlyBaseRate?.toLocaleString()} / 시간
+                    </div>
+                    <div className="text-gray-600">
+                      운영 요일:{" "}
+                      {availableWeekdays
+                        ?.map((w) => weekdayLabels[w])
+                        .join(", ")}
+                    </div>
+                    <div className="text-gray-600">
+                      운영 시간: {openTime} ~ {closeTime}
+                    </div>
+                  </div>
+                </div>
 
-          <div>
-            <label className="block text-sm mb-1">날짜</label>
-            <DatePicker
-              selected={reservationDate}
-              onChange={(date) => {
-                setReservationDate(date);
-                setSelectedStart(null);
-                setSelectedEnd(null);
-              }}
-              minDate={today}
-              filterDate={isDateAllowed}
-              dateFormat="yyyy-MM-dd"
-              className="w-full border rounded px-3 py-2"
-            />
-          </div>
+                <div>
+                  <label className="block text-sm mb-1">날짜</label>
+                  <DatePicker
+                    selected={reservationDate}
+                    onChange={(date) => {
+                      setReservationDate(date);
+                      setSelectedStart(null);
+                      setSelectedEnd(null);
+                    }}
+                    minDate={today}
+                    filterDate={isDateAllowed}
+                    dateFormat="yyyy-MM-dd"
+                    className="w-full border rounded px-3 py-2"
+                  />
+                </div>
 
-          <div>
-            <label className="block text-sm mb-1">시간 선택</label>
-            <div className="grid grid-cols-4 gap-2">
-              {timeSlots.map((slot) => (
-                <button
-                  key={slot}
-                  onClick={() => handleTimeSelect(slot)}
-                  className={`px-2 py-1 border rounded text-sm transition-colors
-                    ${slot === selectedStart ? "bg-lime-300 text-black" : ""}
+                <div>
+                  <label className="block text-sm mb-1">시간 선택</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {timeSlots.map((slot) => (
+                      <button
+                        key={slot}
+                        onClick={() => handleTimeSelect(slot)}
+                        className={`px-2 py-1 border rounded text-sm transition-colors
+                    ${
+                      slot === selectedStart
+                        ? "bg-WarmBeige-300 text-black"
+                        : ""
+                    }
                     ${
                       selectedStart &&
                       selectedEnd &&
                       slot > selectedStart &&
                       slot < selectedEnd
-                        ? "bg-lime-100"
+                        ? "bg-WarmBeige-100"
                         : ""
                     }
-                    ${slot === selectedEnd ? "bg-lime-300 text-black" : ""}
+                    ${slot === selectedEnd ? "bg-WarmBeige-300 text-black" : ""}
                   `}
+                      >
+                        {slot}
+                      </button>
+                    ))}
+                  </div>
+                  {selectedStart && selectedEnd && (
+                    <p className="text-sm text-gray-600 mt-2">
+                      {selectedStart} ~ {selectedEnd}까지 예약합니다.
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm mb-1">인원 수</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={peopleCount}
+                    onChange={(e) => setPeopleCount(Number(e.target.value))}
+                    className="w-full border rounded px-3 py-2"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    최대 {maxPeople}명 (초과 시 추가 요금 발생)
+                  </p>
+                </div>
+
+                <div className="flex justify-between border-t pt-4 text-base font-medium">
+                  <span>결제 금액</span>
+                  <span className="text-green-600">
+                    ₩{totalAmount.toLocaleString()}
+                  </span>
+                </div>
+
+                {error && (
+                  <p className="text-sm text-red-500 text-center">{error}</p>
+                )}
+
+                <button
+                  onClick={handleReservation}
+                  disabled={loading}
+                  className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold mt-2"
                 >
-                  {slot}
+                  {loading ? "예약 중..." : "예약하기"}
                 </button>
-              ))}
-            </div>
-            {selectedStart && selectedEnd && (
-              <p className="text-sm text-gray-600 mt-2">
-                {selectedStart} ~ {selectedEnd}까지 예약합니다.
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm mb-1">인원 수</label>
-            <input
-              type="number"
-              min={1}
-              value={peopleCount}
-              onChange={(e) => setPeopleCount(Number(e.target.value))}
-              className="w-full border rounded px-3 py-2"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              최대 {maxPeople}명 (초과 시 추가 요금 발생)
-            </p>
-          </div>
-
-          <div className="flex justify-between border-t pt-4 text-base font-medium">
-            <span>결제 금액</span>
-            <span className="text-green-600">
-              ₩{totalAmount.toLocaleString()}
-            </span>
-          </div>
-
-          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
-
-          {!paymentDone ? (
-            <button
-              onClick={handlePayment}
-              className="w-full bg-lime-300 hover:bg-lime-200 text-black py-3 rounded-lg font-semibold mt-2"
-            >
-              결제하기
-            </button>
-          ) : (
-            <button
-              onClick={handleReservation}
-              disabled={loading}
-              className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold mt-2"
-            >
-              {loading ? "예약 중..." : "예약하기"}
-            </button>
+              </div>
+            </>
           )}
         </div>
       </div>
-    </div>
+      {showPaymentModal && createdReservation && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          reservation={createdReservation}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentError={handlePaymentError}
+        />
+      )}
+    </>
   );
 };
 

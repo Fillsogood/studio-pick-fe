@@ -56,6 +56,14 @@ export default function StudioSetupPage() {
   const [selectedWeekdays, setSelectedWeekdays] = useState([]);
   const [openTime, setOpenTime] = useState("");
   const [closeTime, setCloseTime] = useState("");
+  const [phone, setPhone] = useState("");
+  const [thumbnailError, setThumbnailError] = useState("");
+  const [studioImagesError, setStudioImagesError] = useState("");
+  const [thumbnailImage, setThumbnailImage] = useState(null);
+  const [location, setLocation] = useState("");
+
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [galleryFiles, setGalleryFiles] = useState([]);
 
   // 대표 이미지 드롭존
   const {
@@ -65,14 +73,18 @@ export default function StudioSetupPage() {
     accept: { "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] },
     maxFiles: 1,
     maxSize: 5 * 1024 * 1024,
-    onDrop: async (acceptedFiles) => {
-      if (acceptedFiles.length === 0) return;
+    onDrop: async (acceptedFiles, fileRejections) => {
+      if (fileRejections.length > 0) {
+        setThumbnailError(
+          "JPG, PNG 파일만 첨부 가능하며 5MB 이하만 가능합니다."
+        );
+        setThumbnailPreview(null);
+        setThumbnailImage(null);
+        return;
+      }
       const file = acceptedFiles[0];
       setThumbnailPreview(URL.createObjectURL(file));
-      const formData = new FormData();
-      formData.append("images", file);
-      await uploadImages(formData);
-      // setThumbnailImage(res.data.data[0]); // 사용하지 않으므로 제거
+      setThumbnailImage(file); // ✅ 파일 객체 저장
     },
   });
 
@@ -84,33 +96,35 @@ export default function StudioSetupPage() {
     accept: { "image/jpeg": [".jpg", ".jpeg"], "image/png": [".png"] },
     maxFiles: 5,
     maxSize: 10 * 1024 * 1024,
-    onDrop: async (acceptedFiles) => {
-      if (acceptedFiles.length === 0) return;
+    onDrop: (acceptedFiles, fileRejections) => {
+      if (fileRejections.length > 0) {
+        setStudioImagesError(
+          "JPG, PNG 파일만 첨부 가능하며 10MB 이하, 최대 5장까지 업로드 가능합니다."
+        );
+        setGalleryPreviews([]);
+        setGalleryFiles([]); // ✅ 초기화
+        return;
+      }
       const previews = acceptedFiles.map((file) => URL.createObjectURL(file));
-      setGalleryPreviews((prev) => [...prev, ...previews].slice(0, 5));
-      const formData = new FormData();
-      acceptedFiles.forEach((file) => formData.append("images", file));
-      await uploadImages(formData);
-      // setGalleryImages((prev) => [...prev, ...res.data.data].slice(0, 5)); // 사용하지 않으므로 제거
+      setGalleryPreviews(previews);
+      setGalleryFiles(acceptedFiles); // ✅ 파일만 저장
     },
   });
 
   // 이미지 삭제 핸들러
   const removeGalleryImage = (idx) => {
-    // setGalleryImages((prev) => prev.filter((_, i) => i !== idx)); // 사용하지 않으므로 제거
     setGalleryPreviews((prev) => prev.filter((_, i) => i !== idx));
+    setGalleryFiles((prev) => prev.filter((_, i) => i !== idx));
   };
   const removeThumbnail = () => {
-    // setThumbnailImage(""); // 사용하지 않으므로 제거
     setThumbnailPreview("");
+    setThumbnailFile(null);
   };
 
   // DB에서 불러온 이미지 세팅
   useEffect(() => {
     if (studio) {
-      // setThumbnailImage(studio.thumbnailImage || ""); // 사용하지 않으므로 제거
       setThumbnailPreview(studio.thumbnailImage || "");
-      // setGalleryImages(studio.imageUrls || []); // 사용하지 않으므로 제거
       setGalleryPreviews(studio.imageUrls || []);
     }
   }, [studio]);
@@ -125,30 +139,44 @@ export default function StudioSetupPage() {
     { label: "일", value: "sun" },
   ];
 
-  // const convertPyeongToSquareMeters = (pyeong) => {
-  //   if (!pyeong || isNaN(pyeong)) return null;
-  //   return (parseFloat(pyeong) * 3.3058).toFixed(1);
-  // };
+  // 연락처 포맷팅
+  const formatPhone = (value) => {
+    const numbersOnly = value.replace(/\D/g, "");
 
-  // const onSubmit = async (data) => {
-  //   try {
-  //     const fullAddress = address; // addressDetail 제거
-  //     const payload = {
-  //       name: data.name,
-  //       description: data.description,
-  //       location: fullAddress,
-  //       phone: data.phone,
-  //       size: data.size,
-  //       thumbnailImage: thumbnailImage, // 단일 URL
-  //       images: imageUrls, // 배열
-  //     };
-  //     await applyStudio(payload);
-  //     alert("스튜디오 신청 완료!");
-  //     navigate("/");
-  //   } catch (error) {
-  //     alert("오류가 발생했어요 😢");
-  //   }
-  // };
+    if (numbersOnly.startsWith("02")) {
+      // 서울 지역번호 (02) -> 10자리
+      if (numbersOnly.length < 3) return numbersOnly;
+      if (numbersOnly.length < 6)
+        return `${numbersOnly.slice(0, 2)}-${numbersOnly.slice(2)}`;
+      if (numbersOnly.length < 10)
+        return `${numbersOnly.slice(0, 2)}-${numbersOnly.slice(
+          2,
+          5
+        )}-${numbersOnly.slice(5)}`;
+      return `${numbersOnly.slice(0, 2)}-${numbersOnly.slice(
+        2,
+        6
+      )}-${numbersOnly.slice(6, 10)}`;
+    } else {
+      // 휴대폰 또는 기타 지역번호
+      if (numbersOnly.length < 4) return numbersOnly;
+      if (numbersOnly.length < 7)
+        return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(3)}`;
+      if (numbersOnly.length < 11)
+        return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(
+          3,
+          6
+        )}-${numbersOnly.slice(6)}`;
+      return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(
+        3,
+        7
+      )}-${numbersOnly.slice(7, 11)}`;
+    }
+  };
+
+  const handleChange = (e) => {
+    setPhone(formatPhone(e.target.value));
+  };
 
   useEffect(() => {
     const fetchStudio = async () => {
@@ -169,17 +197,22 @@ export default function StudioSetupPage() {
         "facilities",
       ];
       fields.forEach((field) => setValue(field, res.data.data[field]));
-      // setPreviewImage(res.data.data.thumbnailImage); // 사용하지 않으므로 제거
-      // setThumbnailImage(res.data.data.thumbnailImage || ""); // 사용하지 않으므로 제거
-      // setImageUrls(res.data.data.imageUrls || []); // 사용하지 않으므로 제거
-      // setAddress(res.data.data.location || "");
       setNotices((res.data.data.rules || "").split("\n"));
       setSelectedFacilities(
         (res.data.data.facilities || "").split(",").map((s) => s.trim())
       );
+      setLocation(res.data.data.location || "");
+      console.log("location", res.data.data.location);
     };
     fetchStudio();
   }, [studioId, setValue]);
+
+  useEffect(() => {
+    if (studio?.phone) {
+      setPhone(studio.phone);
+      setValue("phone", studio.phone);
+    }
+  }, [studio, setValue]);
 
   const handleAddNotice = () => {
     if (newNotice && notices.length < 10) {
@@ -197,31 +230,55 @@ export default function StudioSetupPage() {
   };
 
   const handleActivate = async () => {
-    const payload = {
-      name: studio.name,
-      description: studio.description,
-      phone: studio.phone,
-      size: studio.size,
-      hourlyBaseRate: studio.hourlyBaseRate,
-      weekendPrice: studio.weekendPrice,
-      perPersonRate: studio.perPersonRate,
-      maxPeople: studio.maxPeople,
-      thumbnailImage: thumbnailPreview,
-      images: galleryPreviews,
-      rules: notices.join("\n"),
-      facilities: selectedFacilities.join(", "),
-      status: "ACTIVE",
-      operatingHours: selectedWeekdays.map((day) => ({
-        weekday: day.toUpperCase(), // 예: "MON"
-        openTime,
-        closeTime,
-      })),
-    };
+    try {
+      let thumbnailUrl = studio.thumbnailImage || "";
+      let uploadedImageUrls = studio.imageUrls || [];
 
-    console.log("✅ 보낼 payload", payload); // 👈 디버깅용
+      // 썸네일 업로드
+      if (thumbnailFile instanceof File) {
+        const formData = new FormData();
+        formData.append("images", thumbnailFile);
+        const res = await uploadImages(formData);
+        thumbnailUrl = res.data.data[0]; // 첫 번째 이미지
+      }
 
-    await updateStudio(studioId, payload);
-    navigate("/account/studios");
+      // 갤러리 이미지 업로드
+      if (galleryFiles.length > 0 && galleryFiles[0] instanceof File) {
+        const formData = new FormData();
+        galleryFiles.forEach((file) => formData.append("images", file));
+        const res = await uploadImages(formData);
+        uploadedImageUrls = res.data.data;
+      }
+
+      const payload = {
+        name: studio.name,
+        description: studio.description,
+        phone: studio.phone,
+        location: location,
+        size: studio.size,
+        hourlyBaseRate: studio.hourlyBaseRate,
+        weekendPrice: studio.weekendPrice,
+        perPersonRate: studio.perPersonRate,
+        maxPeople: studio.maxPeople,
+        thumbnailImage: thumbnailUrl,
+        images: uploadedImageUrls,
+        rules: notices.join("\n"),
+        facilities: selectedFacilities.join(", "),
+        status: "ACTIVE",
+        operatingHours: selectedWeekdays.map((day) => ({
+          weekday: day.toUpperCase(), // 예: "MON"
+          openTime,
+          closeTime,
+        })),
+      };
+
+      await updateStudio(studioId, payload);
+      alert("완료되었습니다!");
+      navigate("/host/studios");
+    } catch (error) {
+      console.error("❌ 개설 오류:", error);
+      alert("스튜디오 개설 중 오류가 발생했습니다.");
+    }
   };
 
   const generateHourOptions = () => {
@@ -247,11 +304,16 @@ export default function StudioSetupPage() {
         <label className="font-semibold">위치</label>
         <input
           className="w-full border p-2 rounded mb-2"
-          value={studio.location}
+          value={location}
           readOnly
         />
-        {console.log("KakaoMap에 전달되는 주소:", studio.location)}
-        <KakaoMap location={studio.location} />
+        <KakaoMap
+          location={location}
+          onAddressSelected={(addr) => {
+            setLocation(addr);
+            setValue("location", addr);
+          }}
+        />
       </div>
 
       <div className="mb-4">
@@ -263,13 +325,14 @@ export default function StudioSetupPage() {
       </div>
 
       <div className="mb-4">
-        <label className="font-semibold">전화번호</label>
+        <label className="font-semibold">연락처</label>
         <input
           className="w-full border p-2 rounded"
           type="tel"
-          pattern="\\d{3}-\\d{4}-\\d{4}"
-          placeholder="000-0000-0000"
-          defaultValue={studio.phone}
+          inputMode="numeric"
+          value={phone}
+          maxLength={13}
+          onChange={handleChange}
         />
       </div>
 
@@ -366,7 +429,7 @@ export default function StudioSetupPage() {
               }}
               className={`px-4 py-2 rounded-full border text-sm ${
                 selectedWeekdays.includes(day.value)
-                  ? "bg-lime-300 text-black border-lime-200"
+                  ? "bg-WarmBeige-300 text-black border-WarmBeige-200"
                   : "bg-white hover:bg-gray-100 border-gray-300"
               }`}
             >
@@ -412,7 +475,7 @@ export default function StudioSetupPage() {
         <div className="flex items-center gap-4">
           <div
             {...getThumbnailRootProps()}
-            className="flex-1 border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer bg-gray-50 hover:bg-lime-100 transition"
+            className="flex-1 border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer bg-gray-50 hover:bg-WarmBeige-200 transition"
           >
             <input {...getThumbnailInputProps()} />
             {thumbnailPreview ? (
@@ -441,7 +504,7 @@ export default function StudioSetupPage() {
           </div>
           <button
             type="button"
-            className="bg-lime-300 hover:bg-lime-200 text-black px-6 py-4 rounded-lg ml-2"
+            className="bg-WarmBeige-300 hover:bg-WarmBeige-200 text-black px-6 py-4 rounded-lg ml-2"
           >
             파일첨부
           </button>
@@ -457,7 +520,7 @@ export default function StudioSetupPage() {
         <div className="flex items-center gap-4">
           <div
             {...getGalleryRootProps()}
-            className="flex-1 border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer bg-gray-50 hover:bg-lime-100 transition"
+            className="flex-1 border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer bg-gray-50 hover:bg-WarmBeige-200 transition"
           >
             <input {...getGalleryInputProps()} />
             {galleryPreviews.length > 0 ? (
@@ -492,7 +555,7 @@ export default function StudioSetupPage() {
           </div>
           <button
             type="button"
-            className="bg-lime-300 hover:bg-lime-200 text-black px-6 py-4 rounded-lg ml-2"
+            className="bg-WarmBeige-300 hover:bg-WarmBeige-200 text-black px-6 py-4 rounded-lg ml-2"
           >
             파일첨부
           </button>
@@ -508,7 +571,7 @@ export default function StudioSetupPage() {
               onClick={() => handleToggleFacility(item.value)}
               className={`border p-2 rounded flex items-center gap-2 justify-center text-sm ${
                 selectedFacilities.includes(item.value)
-                  ? "bg-lime-300 text-black"
+                  ? "bg-WarmBeige-300 text-black"
                   : "bg-white"
               }`}
               type="button"
@@ -533,7 +596,7 @@ export default function StudioSetupPage() {
           />
           <button
             onClick={handleAddNotice}
-            className="bg-lime-300 text-black px-4 rounded"
+            className="bg-WarmBeige-300 text-black px-4 rounded"
             type="button"
           >
             추가
@@ -565,7 +628,7 @@ export default function StudioSetupPage() {
         <button
           onClick={handleActivate}
           type="submit"
-          className="bg-lime-300 text-black border border-lime-200 px-6 py-3 rounded hover:bg-lime-200 transition-colors font-medium"
+          className="bg-WarmBeige-300 text-black border border-WarmBeige-200 px-6 py-3 rounded hover:bg-WarmBeige-200 transition-colors font-medium"
         >
           {studio?.status === "ACTIVE" ? "완료" : "완료"}
         </button>

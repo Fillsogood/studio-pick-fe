@@ -7,14 +7,13 @@ import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
 import { useAuth } from "../../hooks/useAuth";
 import StudioReservationModal from "../../components/StudioReservationModal";
+import KakaoMap from "../../components/KakaoMap";
 
 export default function StudioDetailPage() {
   const { studioId } = useParams();
   const navigate = useNavigate();
   const [studio, setStudio] = useState(null);
   const [error, setError] = useState(null);
-  const [favorites, setFavorites] = useState([]);
-  const isFavorite = studio && favorites.includes(studio.id);
   const { isLoggedIn, user } = useAuth();
 
   const [reservationModalOpen, setReservationModalOpen] = useState(false);
@@ -141,15 +140,6 @@ export default function StudioDetailPage() {
     { label: "일", value: "sun" },
   ];
 
-  const handleFavoriteClick = () => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) {
-      alert("즐겨찾기를 하시려면 로그인이 필요합니다.");
-      return;
-    }
-    navigate("/favorites");
-  };
-
   if (error) return <div className="text-red-500">{error}</div>;
   if (!studio) return <div>로딩 중...</div>;
 
@@ -181,7 +171,7 @@ export default function StudioDetailPage() {
           <ul className="grid grid-cols-2 gap-2 text-gray-700">
             {facilities.map((item, idx) => (
               <li key={idx} className="flex items-center gap-2">
-                <FaCheckCircle className="text-lime-400" />
+                <FaCheckCircle className="text-WarmBeige-300" />
                 {item.trim()}
               </li>
             ))}
@@ -198,12 +188,7 @@ export default function StudioDetailPage() {
           {/* 위치 */}
           <h3 className="text-xl font-semibold mt-6 mb-2">위치</h3>
           <p className="text-gray-700">{studio.location}</p>
-
-          {/* 운영자 */}
-          <h3 className="text-xl font-semibold mt-6 mb-2">운영자</h3>
-          <p className="text-gray-700">
-            {studio.instructorName || "정보 없음"}
-          </p>
+          <KakaoMap location={studio.location} />
         </div>
 
         {/* 오른쪽 요약 박스 */}
@@ -214,8 +199,9 @@ export default function StudioDetailPage() {
 
             <div className="mt-4 space-y-1 text-sm text-gray-700">
               <p>
-                <strong>요금:</strong> {studio.hourlyBaseRate?.toLocaleString()}
-                원 / 시간
+                <span style={{ fontWeight: "bold", fontSize: "1.5em" }}>
+                  요금: {studio.hourlyBaseRate?.toLocaleString()}원 / 시간
+                </span>
               </p>
               <p>
                 <strong>주말:</strong> {studio.weekendPrice?.toLocaleString()}원
@@ -250,18 +236,8 @@ export default function StudioDetailPage() {
 
             <div className="flex justify-between items-center mt-6">
               <button
-                onClick={handleFavoriteClick}
-                className="flex items-center space-x-1 text-red-500"
-              >
-                {isFavorite ? (
-                  <AiFillHeart size={24} />
-                ) : (
-                  <AiOutlineHeart size={24} />
-                )}
-              </button>
-              <button
                 onClick={() => setShowModal(true)} // ← 이 부분을 추가!
-                className="bg-lime-300 hover:bg-lime-200 text-black px-4 py-2 rounded-lg"
+                className="bg-WarmBeige-300 hover:bg-WarmBeige-200 text-black px-4 py-2 rounded-lg"
               >
                 예약하기
               </button>
