@@ -8,7 +8,7 @@ const StudioPreviewList = () => {
   useEffect(() => {
     const fetchStudios = async () => {
       try {
-        const res = await getStudios({ page: 1, sort: "popular" });
+        const res = await getStudios({ page: 1, status: "ACTIVE" });
         const all = res?.data?.data?.content || [];
 
         const highRated = all
