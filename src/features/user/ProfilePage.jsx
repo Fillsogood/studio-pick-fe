@@ -188,7 +188,7 @@ const ProfilePage = () => {
                 <div className="flex justify-end">
                   <button
                     onClick={handleSave}
-                    className="bg-lime-300 text-black px-6 py-2 rounded hover:opacity-90 transition"
+                    className="bg-WarmBeige-300 text-black px-6 py-2 rounded hover:opacity-90 transition"
                   >
                     저장하기
                   </button>
@@ -216,7 +216,7 @@ const ProfilePage = () => {
                     onClick={handleEmailChange}
                     className={`px-4 h-[42px] min-w-[90px] whitespace-nowrap text-sm font-medium rounded-[6px] flex items-center justify-center ${
                       isEmailValid && emailChanged
-                        ? "bg-lime-300 text-black"
+                        ? "bg-WarmBeige-300 text-black"
                         : "bg-gray-200 text-gray-400"
                     }`}
                   >
@@ -326,7 +326,7 @@ const ProfilePage = () => {
                           confirmPassword &&
                           newPassword === confirmPassword &&
                           passwordRegex.test(newPassword)
-                            ? "bg-lime-300 text-black"
+                            ? "bg-WarmBeige-300 text-black"
                             : "bg-gray-200 text-gray-400"
                         }`}
                       >

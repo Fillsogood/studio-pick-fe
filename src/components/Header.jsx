@@ -30,8 +30,8 @@ const Header = () => {
         <div className="flex-1 px-6">
           <input
             type="text"
-            placeholder="스튜디오 검색"
-            className="w-full max-w-xl px-4 py-2 rounded-md border focus:outline-none focus:ring focus:ring-yellow-300"
+            placeholder="스튜디오 / 클래스 검색"
+            className="w-full max-w-xl px-4 py-2 rounded-md border focus:outline-none focus:ring focus:ring-red-300"
           />
         </div>
 

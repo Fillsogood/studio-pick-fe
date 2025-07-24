@@ -196,7 +196,7 @@ const ReviewWritePage = () => {
       console.log("리뷰 작성 응답:", response); // 디버깅용
 
       alert("리뷰가 작성되었습니다!");
-      navigate("/reservations");
+      navigate("/");
     } catch (error) {
       console.error("리뷰 작성 실패:", error);
       console.error("에러 상세:", error.response?.data); // 백엔드 에러 응답 확인
