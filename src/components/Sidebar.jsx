@@ -11,7 +11,7 @@ import {
   GalleryHorizontal,
   PlusSquare,
 } from "lucide-react";
-import ComingSoonModal from "./ComingSoonModal";
+import ComingSoonModal from "./ComingSoonModal.jsx";
 
 const menuItems = [
   { label: "홈", icon: <Home size={20} />, path: "/" },

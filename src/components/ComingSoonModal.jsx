@@ -1,4 +1,3 @@
-// src/components/ComingSoonModal.jsx
 import React from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
